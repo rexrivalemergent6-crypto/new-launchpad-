@@ -136,6 +136,16 @@ async def relay_explore(request: Request):
         content = r.content
     cache_set(key, (content,), TTL_JSON)
     return Response(content=content, media_type="application/json", status_code=r.status_code)
+@api_router.get("/relay/stocks")
+async def relay_stocks():
+    cached = cache_get("stocks", 60)
+    if cached:
+        return Response(content=cached[0], media_type="application/json")
+    r = await upstream("api/stocks/prices")
+    cache_set("stocks", (r.content,), 60)
+    return json_response(r)
+
+
 @api_router.get("/relay/scoreboard")
 async def relay_scoreboard():
     cached = cache_get("scoreboard", TTL_JSON)

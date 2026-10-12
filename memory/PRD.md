@@ -53,3 +53,7 @@
 ## Full Circuit de-referencing (2026-10-12, round 3)
 - Server-side brand filter: coins with "circuit" in name/ticker dropped from /api/relay/explore (26 clean cards) and every /api/relay/scoreboard list — only pad coins without other-brand naming appear.
 - Burn program rebranded to CodePad: Flywheel = "the CodePad program", "Launch fees buy back and burn $CODEPAD", 6.6M $CODEPAD torched, live "AI agents on duty" counter (relayed usesAi count) — buyback + burn + AI agents paired as requested. Scoreboard/Home burn units now $CODEPAD. Zero $CIRCUIT/Circuit mentions in our copy (grep-verified).
+
+## Everything-upstream pass (2026-10-12, round 4)
+- New GET /api/relay/stocks (60s cache) relays the upstream live stock price feed; Stocks page tiles now render live prices (TSLA $379, NVDA $226 …) with graceful fallback to the symbol list if the relay hiccups.
+- Confirmed every data surface is upstream-proxied: stats, explore coins, scoreboard (+brand filter), 134-block library, stock prices, coin images via /api/relay/*; Bolt compile via /api/c/compile; wallet sign-in via /api/c/auth/*; launch via /api/c/coins. Only our own paraphrased copy and recipe blueprints are static by design.
