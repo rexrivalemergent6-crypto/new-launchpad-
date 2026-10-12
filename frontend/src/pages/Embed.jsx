@@ -1,5 +1,5 @@
 import { useParams, useSearchParams } from "react-router-dom";
-import { useExplore, useRules, relayImg, fmtUsd, fmtSol, fmtNum, mainHref } from "@/lib/relay";
+import { useExplore, useRules, relayImg, fmtUsd, fmtSol, fmtNum } from "@/lib/relay";
 
 export default function Embed() {
   const [params] = useSearchParams();
@@ -24,19 +24,19 @@ export default function Embed() {
         <div className="mt-4 grid grid-cols-3 gap-2 font-mono text-[11px] tabular">
           <div>
             <div className="text-fog/70 text-[9px] uppercase">MC</div>
-            <div className="text-[#161613]">{fmtUsd(card?.marketCapUsd)}</div>
+            <div className="text-snow">{fmtUsd(card?.marketCapUsd)}</div>
           </div>
           <div>
             <div className="text-fog/70 text-[9px] uppercase">Vol</div>
-            <div className="text-[#161613]">{fmtSol(card?.volumeSol)}</div>
+            <div className="text-snow">{fmtSol(card?.volumeSol)}</div>
           </div>
           <div>
             <div className="text-fog/70 text-[9px] uppercase">Trades</div>
-            <div className="text-[#161613]">{fmtNum(card?.trades)}</div>
+            <div className="text-snow">{fmtNum(card?.trades)}</div>
           </div>
         </div>
-        <a href={mainHref(card?.href || "/explore")} target="_blank" rel="noopener noreferrer" data-testid="embed-cta"
-          className="mt-4 block text-center rounded-lg bg-mint-bright hover:bg-mint text-[#131311] font-bold text-[12px] py-2 transition-colors">
+        <a href={card?.href || "/explore"} data-testid="embed-cta"
+          className="mt-4 block text-center rounded-lg bg-mint-bright hover:bg-mint text-[#0A0F16] font-bold text-[12px] py-2 transition-colors">
           Trade on CodePad
         </a>
       </div>

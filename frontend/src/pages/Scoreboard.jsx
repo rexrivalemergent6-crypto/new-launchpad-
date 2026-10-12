@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { relayImg, useScoreboard, mainHref } from "@/lib/relay";
+import { useNavigate } from "react-router-dom";
+import { relayImg, useScoreboard } from "@/lib/relay";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -20,11 +21,12 @@ const LISTS = [
 ];
 
 function ListRow({ item, i }) {
+  const navigate = useNavigate();
+  const to = `/c/${(item.href || "").split("/c/")[1] || ""}`;
   return (
-    <motion.a
-      href={mainHref(item.href)}
-      target="_blank"
-      rel="noopener noreferrer"
+    <motion.div
+      role="link" tabIndex={0} style={{ cursor: "pointer" }}
+      onClick={() => window.location.assign(to)}
       initial={{ opacity: 0, y: 14 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
@@ -40,8 +42,8 @@ function ListRow({ item, i }) {
           {item.name} <span className="text-mint font-mono text-xs">${item.ticker}</span>
         </div>
       </div>
-      <div className="font-mono text-sm tabular text-[#161613] shrink-0">{item.text}</div>
-    </motion.a>
+      <div className="font-mono text-sm tabular text-snow shrink-0">{item.text}</div>
+    </motion.div>
   );
 }
 

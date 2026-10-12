@@ -324,16 +324,22 @@ async def c_relay(path: str, request: Request):
     if sid and jar is not None:
         absorb_cookies(jar, r)
 
-    if path == "coins" and request.method == "POST" and r.status_code == 200:
+    if (path == "coins" or path.endswith("/send")) and request.method == "POST" and r.status_code == 200:
         try:
+            q = dict(request.query_params)
             payload = r.json()
-            await db.launches.insert_one({
-                "mint": payload.get("mint") or payload.get("address") or payload.get("url"),
-                "url": payload.get("url"),
-                "raw": json.dumps(payload)[:2000],
-                "at": time.time() * 1000,
-            })
-            logger.info("launch recorded through CodePad portal")
+            mint = payload.get("mint") or payload.get("address") or q.get("mint")
+            sig = payload.get("signature") or payload.get("sig")
+            if mint or sig:
+                await db.launches.insert_one({
+                    "mint": mint,
+                    "url": payload.get("url") or (f"https://circuitdev.fun/c/{mint}" if mint else None),
+                    "slug": payload.get("slug") or q.get("slug") or None,
+                    "signature": sig,
+                    "raw": json.dumps(payload)[:2000],
+                    "at": time.time() * 1000,
+                })
+                logger.info("launch recorded through CodePad portal")
         except Exception as e:
             logger.warning(f"launch record failed: {e}")
 

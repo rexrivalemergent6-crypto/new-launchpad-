@@ -50,7 +50,7 @@ const sentenceOf = (b) => {
 
 function Part({ p }) {
   const base = "max-w-[160px] truncate";
-  if (p.k === "label") return <span className="text-[14px] text-[#161613] break-words">{p.t}</span>;
+  if (p.k === "label") return <span className="text-[14px] text-snow break-words">{p.t}</span>;
   if (p.k === "slot") return null;
   if (p.k === "dropdown") {
     const v = p.o?.[0] ?? p.n;
@@ -157,7 +157,7 @@ function BlockCard({ b, code, moduleName }) {
             type="button"
             onClick={() => setOpen((v) => !v)}
             data-testid={`library-block-toggle-${slug}`}
-            className="inline-flex items-center gap-1 font-mono text-[11px] text-fog hover:text-[#131311] transition-colors"
+            className="inline-flex items-center gap-1 font-mono text-[11px] text-fog hover:text-snow transition-colors"
           >
             {open ? "less" : "details"} <ChevronDown size={13} className={`transition-transform ${open ? "rotate-180" : ""}`} />
           </button>
@@ -267,9 +267,9 @@ export default function Library() {
           whether it runs for real on a launched coin. Tap <span className="text-mint">Ask Bolt</span> on any block to start a rule with it.
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-2 font-mono text-[11px]" data-testid="library-stats">
-          <span className="px-2.5 py-1 rounded-lg border border-line bg-panel"><b className="text-[#161613]">{cat.total}</b> <span className="text-fog">blocks</span></span>
-          <span className="px-2.5 py-1 rounded-lg border border-line bg-panel"><b className="text-[#161613]">{cat.categories.length}</b> <span className="text-fog">families</span></span>
-          <span className="px-2.5 py-1 rounded-lg border border-line bg-panel"><b className="text-[#161613]">{cat.modules.length}</b> <span className="text-fog">runtime modules</span></span>
+          <span className="px-2.5 py-1 rounded-lg border border-line bg-panel"><b className="text-snow">{cat.total}</b> <span className="text-fog">blocks</span></span>
+          <span className="px-2.5 py-1 rounded-lg border border-line bg-panel"><b className="text-snow">{cat.categories.length}</b> <span className="text-fog">families</span></span>
+          <span className="px-2.5 py-1 rounded-lg border border-line bg-panel"><b className="text-snow">{cat.modules.length}</b> <span className="text-fog">runtime modules</span></span>
           <span className="px-2.5 py-1 rounded-lg border border-line bg-panel inline-flex items-center gap-1.5" data-testid="library-source">
             <span className={`w-1.5 h-1.5 rounded-full ${live ? "bg-mint animate-blink" : "bg-amberx"}`} />
             <span className="text-fog">{live ? "live via relay" : isFetching ? "syncing…" : isError ? "offline copy" : "saved copy"}</span>
@@ -291,13 +291,13 @@ export default function Library() {
             />
             {query && (
               <button type="button" onClick={() => setQuery("")} data-testid="library-search-clear"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-fog hover:text-[#131311]"><X size={15} /></button>
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-fog hover:text-snow"><X size={15} /></button>
             )}
           </label>
           <div className="flex shrink-0 rounded-xl border border-line bg-panel p-1 text-[12px] font-semibold">
             {[["family", "Family"], ["module", "Module"]].map(([v, l]) => (
               <button key={v} type="button" onClick={() => switchView(v)} data-testid={`library-view-${v}`}
-                className={`px-2.5 sm:px-3 h-8 rounded-lg transition-colors ${view === v ? "bg-mint text-[#131311]" : "text-fog hover:text-[#131311]"}`}>
+                className={`px-2.5 sm:px-3 h-8 rounded-lg transition-colors ${view === v ? "bg-mint text-[#0A0F16]" : "text-fog hover:text-snow"}`}>
                 <span className="sm:hidden">{l}</span><span className="hidden sm:inline">By {l.toLowerCase()}</span>
               </button>
             ))}
@@ -305,13 +305,13 @@ export default function Library() {
         </div>
         <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]" data-testid="library-filter-row">
           <button type="button" onClick={() => setOnly("ALL")} data-testid="library-filter-all"
-            className={`shrink-0 px-3 h-8 rounded-lg border text-[12px] font-semibold transition-colors ${only === "ALL" ? "border-mint/60 text-mint bg-mint/10" : "border-line text-fog hover:text-[#131311]"}`}>
+            className={`shrink-0 px-3 h-8 rounded-lg border text-[12px] font-semibold transition-colors ${only === "ALL" ? "border-mint/60 text-mint bg-mint/10" : "border-line text-fog hover:text-snow"}`}>
             All <span className="font-mono opacity-70">{shown.length}</span>
           </button>
           {groups.map((g) => (
             <button key={g.key} type="button" disabled={!g.blocks.length} onClick={() => setOnly(only === g.key ? "ALL" : g.key)}
               data-testid={`library-filter-${g.key.toLowerCase()}`}
-              className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 h-8 rounded-lg border text-[12px] font-semibold transition-colors disabled:opacity-30 ${only === g.key ? "bg-raise text-[#161613]" : "border-line text-fog hover:text-[#131311]"}`}
+              className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 h-8 rounded-lg border text-[12px] font-semibold transition-colors disabled:opacity-30 ${only === g.key ? "bg-raise text-snow" : "border-line text-fog hover:text-snow"}`}
               style={only === g.key ? { borderColor: colorOf(g.code) } : undefined}>
               <span className="font-mono text-[10px]" style={{ color: colorOf(g.code) }}>{g.code}</span>
               {g.title}
@@ -337,7 +337,7 @@ export default function Library() {
         className="mt-16 border border-line rounded-2xl bg-panel p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
         <p className="text-fog max-w-md">Snap any of these together in the builder — one sentence, or block by block.</p>
         <Link to="/builder" data-testid="library-to-builder"
-          className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#131311] font-bold px-6 py-3.5 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
+          className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#0A0F16] font-bold px-6 py-3.5 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
           Open the builder <ArrowUpRight size={17} />
         </Link>
       </motion.div>

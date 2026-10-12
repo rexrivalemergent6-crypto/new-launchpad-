@@ -25,80 +25,22 @@ export const Logo = ({ small }) => (
   <span className="inline-flex items-center gap-2.5 select-none">
     <CodePadMark size={small ? 26 : 30} />
     <span className="font-extrabold tracking-tight" style={{ fontSize: small ? 20 : 23 }}>
-      <span className="text-[#161613]">Code</span>
+      <span className="text-snow">Code</span>
       <span className="text-mint">Pad</span>
     </span>
   </span>
 );
 
-const GROUPS = [
-  {
-    title: "studio",
-    items: [
-      { label: "Builder", to: "/builder", tid: "nav-builder" },
-      { label: "Explore", to: "/explore", tid: "nav-explore" },
-    ],
-  },
-  {
-    title: "the market",
-    items: [
-      { label: "Scoreboard", to: "/scoreboard", tid: "nav-scoreboard" },
-      { label: "Live trades", to: "/live", tid: "nav-live" },
-      { label: "Payouts", to: "/paid", tid: "nav-paid" },
-      { label: "Stats", to: "/stats", tid: "nav-stats" },
-      { label: "Rulebook", to: "/rules", tid: "nav-rules" },
-    ],
-  },
-  {
-    title: "blocks",
-    items: [
-      { label: "Library", to: "/library", tid: "nav-library" },
-      { label: "Blueprints", to: "/recipes", tid: "nav-recipes" },
-      { label: "Stocks", to: "/stocks", tid: "nav-stocks" },
-      { label: "The Loop", to: "/flywheel", tid: "nav-flywheel" },
-    ],
-  },
+/* nav mirrors the main pad exactly: Build · Explore · Gallery · Flywheel · New · Docs · My coins */
+const NAV = [
+  { label: "Builder", to: "/builder", tid: "nav-builder" },
+  { label: "Explore", to: "/explore", tid: "nav-explore" },
+  { label: "Library", to: "/rules", tid: "nav-rules" },
+  { label: "Model", to: "/flywheel", tid: "nav-flywheel" },
+  { label: "Handbook", to: "/docs", tid: "nav-docs" },
+  { label: "Changelog", to: "/updates", tid: "nav-updates" },
+  { label: "My coins", to: "/coins", tid: "nav-coins" },
 ];
-
-const LEGAL = [
-  { label: "Docs", to: "/docs", tid: "nav-docs" },
-  { label: "Updates", to: "/updates", tid: "nav-updates" },
-  { label: "Terms", to: "/terms", tid: "nav-terms" },
-  { label: "Risks", to: "/risks", tid: "nav-risks" },
-  { label: "Privacy", to: "/privacy", tid: "nav-privacy" },
-  { label: "Brand", to: "/brand", tid: "nav-brand" },
-];
-
-function NavItems({ onPick }) {
-  const { pathname } = useLocation();
-  return (
-    <div className="flex flex-col gap-4">
-      {GROUPS.map((g) => (
-        <div key={g.title}>
-          <p className="px-5 mb-1.5 font-mono text-[9px] uppercase tracking-[0.24em] text-fog/60">{g.title}</p>
-          <div className="flex flex-col gap-0.5">
-            {g.items.map((n) => {
-              const active = pathname === n.to;
-              return (
-                <Link
-                  key={n.label}
-                  to={n.to}
-                  data-testid={n.tid}
-                  onClick={onPick}
-                  className={`px-5 py-2.5 rounded-xl text-[17px] transition-colors duration-200 ${
-                    active ? "bg-mint-deep text-mint" : "text-fog hover:text-[#131311] hover:bg-white/5"
-                  }`}
-                >
-                  {n.label}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function RelayStatus() {
   const { isError } = useStats();
@@ -152,30 +94,38 @@ function WalletBox() {
 }
 
 function Panel({ onPick }) {
+  const { pathname } = useLocation();
   return (
     <div className="h-full flex flex-col px-4 pb-5 pt-6 overflow-y-auto">
-      <Link to="/" data-testid="nav-home" onClick={onPick} className="px-3 mb-6 shrink-0">
+      <Link to="/" data-testid="nav-home" onClick={onPick} className="px-3 mb-8 shrink-0">
         <Logo />
       </Link>
-      <div className="flex-1">
-        <NavItems onPick={onPick} />
-      </div>
-      <div className="pt-4 space-y-3">
-        <div className="flex flex-wrap gap-x-3 gap-y-1 px-3" data-testid="legal-links">
-          {LEGAL.map((l) => (
-            <Link key={l.to} to={l.to} data-testid={l.tid} onClick={onPick}
-              className="font-mono text-[10px] text-fog/70 hover:text-mint transition-colors">
-              {l.label}
+      <nav className="flex flex-col gap-0.5 flex-1">
+        {NAV.map((n) => {
+          const active = pathname === n.to;
+          return (
+            <Link
+              key={n.label}
+              to={n.to}
+              data-testid={n.tid}
+              onClick={onPick}
+              className={`px-5 py-2.5 rounded-xl text-[17px] transition-colors duration-200 ${
+                active ? "bg-mint-deep text-mint" : "text-fog hover:text-snow hover:bg-white/5"
+              }`}
+            >
+              {n.label}
             </Link>
-          ))}
-        </div>
+          );
+        })}
+      </nav>
+      <div className="pt-4 space-y-3">
         <RelayStatus />
         <WalletBox />
         <Link
-          to="/builder"
+          to="/builder?launch=1"
           data-testid="deploy-coin-button"
           onClick={onPick}
-          className="block w-full rounded-xl bg-mint-bright hover:bg-mint text-[#131311] text-center font-bold text-lg py-3.5 transition-all duration-200 hover:shadow-[0_0_36px_rgba(74,222,128,0.35)] active:scale-[0.98]"
+          className="block w-full rounded-xl bg-mint-bright hover:bg-mint text-[#0A0F16] text-center font-bold text-lg py-3.5 transition-all duration-200 hover:shadow-[0_0_36px_rgba(74,222,128,0.35)] active:scale-[0.98]"
         >
           Deploy a coin
         </Link>
@@ -189,7 +139,7 @@ function Panel({ onPick }) {
             rel="noopener noreferrer"
             data-testid="x-social-link"
             aria-label="CodePad on X"
-            className="shrink-0 w-8 h-8 rounded-lg border border-line bg-panel flex items-center justify-center text-fog hover:text-[#131311] hover:border-mint/40 transition-colors"
+            className="shrink-0 w-8 h-8 rounded-lg border border-line bg-panel flex items-center justify-center text-fog hover:text-snow hover:border-mint/40 transition-colors"
           >
             <XIcon size={13} />
           </a>
@@ -221,21 +171,11 @@ export default function Sidebar() {
             <Logo small />
           </Link>
           <div className="flex items-center gap-2">
-            <a
-              href="https://x.com/usecodepad"
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="x-social-link-mobile"
-              aria-label="CodePad on X"
-              className="w-11 h-11 rounded-xl border border-line bg-panel flex items-center justify-center text-fog hover:text-mint transition-colors"
-            >
-              <XIcon size={15} />
-            </a>
             <button
               data-testid="menu-toggle-button"
               onClick={() => setOpen(!open)}
               aria-label="Menu"
-              className="w-11 h-11 rounded-xl border border-line bg-panel flex items-center justify-center text-[#161613]"
+              className="w-11 h-11 rounded-xl border border-line bg-panel flex items-center justify-center text-snow"
             >
               {open ? <X size={20} /> : <Menu size={20} />}
             </button>

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Rocket } from "lucide-react";
 import CoinCard from "@/components/CoinCard";
-import { useExplore, useLaunches, MAIN_BUILDER } from "@/lib/relay";
+import { useExplore, useLaunches } from "@/lib/relay";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -48,7 +48,7 @@ export default function Explore() {
               data-testid={s.tid}
               onClick={() => { setOnlyOurs(s.k); setFilter("All"); }}
               className={`font-mono text-[11px] px-3.5 py-1.5 rounded-full border transition-colors ${
-                onlyOurs === s.k ? "bg-mint-deep text-mint border-mint/40" : "text-fog border-line hover:text-[#131311]"
+                onlyOurs === s.k ? "bg-mint-deep text-mint border-mint/40" : "text-fog border-line hover:text-snow"
               }`}
             >
               {s.label}
@@ -63,7 +63,7 @@ export default function Explore() {
                 data-testid={`filter-chip-${t.replace(/\s+/g, "-").toLowerCase()}`}
                 onClick={() => setFilter(t)}
                 className={`font-mono text-[10px] px-3 py-1 rounded-full border transition-colors ${
-                  filter === t ? "bg-mint-deep text-mint border-mint/40" : "text-fog border-line hover:text-[#131311]"
+                  filter === t ? "bg-mint-deep text-mint border-mint/40" : "text-fog border-line hover:text-snow"
                 }`}
               >
                 {t}
@@ -85,8 +85,8 @@ export default function Explore() {
           <Rocket size={26} className="text-mint mx-auto" />
           <h2 className="mt-4 font-extrabold text-2xl">No CodePad launches yet.</h2>
           <p className="mt-2 text-fog max-w-sm mx-auto">The first coin launched through this portal lands here, tracked by its mint. Be the one.</p>
-          <a href={MAIN_BUILDER} target="_blank" rel="noopener noreferrer" data-testid="empty-ours-cta"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#131311] font-bold px-6 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
+          <a href="/builder?launch=1" data-testid="empty-ours-cta"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#0A0F16] font-bold px-6 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
             Launch the first one <ArrowRight size={16} />
           </a>
         </motion.div>

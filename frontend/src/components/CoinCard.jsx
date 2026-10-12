@@ -1,13 +1,15 @@
 import { motion } from "framer-motion";
-import { relayImg, fmtUsd, fmtSol, fmtNum, timeAgo, mainHref } from "@/lib/relay";
+import { Link } from "react-router-dom";
+import { relayImg, fmtUsd, fmtSol, fmtNum, timeAgo } from "@/lib/relay";
 
 export default function CoinCard({ coin, index = 0 }) {
   const tags = coin.tags || [];
   return (
-    <motion.a
-      href={mainHref(coin.href)}
-      target="_blank"
-      rel="noopener noreferrer"
+    <motion.div
+      role="link"
+      tabIndex={0}
+      onClick={(e) => { window.location.assign(`/c/${coin.mint || coin.slug}`); }}
+      style={{ cursor: "pointer" }}
       data-testid={`coin-card-${coin.ticker || coin.slug}`}
       initial={{ opacity: 0, y: 26 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -80,6 +82,6 @@ export default function CoinCard({ coin, index = 0 }) {
           </div>
         )}
       </div>
-    </motion.a>
+    </motion.div>
   );
 }

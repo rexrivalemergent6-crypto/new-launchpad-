@@ -63,7 +63,9 @@ export function newNode(def, id) {
 
 const shortLabel = (parts) => parts.length === 1 && parts[0].k === "label" && parts[0].t.length <= 4;
 
-function FieldPill({ part, value, onChange }) {
+const pillWords = (parts) => parts.map((p) => p.k === "label" ? p.t : p.k === "dropdown" ? (p.o?.[0] ?? "") : (p.v ?? p.n ?? "")).filter(Boolean).join(" ").trim();
+
+function FieldPill({ part, value, onChange, node, ctx }) {
   const v = value ?? part.v;
   if (part.k === "label") return <span className="text-[13.5px] font-semibold leading-tight break-words">{part.t}</span>;
   if (part.k === "dropdown") {
@@ -76,7 +78,7 @@ function FieldPill({ part, value, onChange }) {
           className="pz-in appearance-none cursor-pointer pr-6 truncate">
           {opts.map((o) => <option key={o} value={o} className="bg-ink">{o}</option>)}
         </select>
-        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-[#161613]/70">▾</span>
+        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-snow/70">▾</span>
       </span>
     );
   }
@@ -89,9 +91,30 @@ function FieldPill({ part, value, onChange }) {
   if (part.k === "slot") return null;
   const isBool = part.check && part.check.includes("Boolean");
   const text = v == null ? "" : String(v);
+  const fieldKey = part.n || "value";
   return (
     <input value={text} onChange={(e) => onChange(e.target.value)} placeholder={part.n || "0"}
       data-testid={part.k === "value" ? "block-field-value" : `block-field-${part.k}`}
+      draggable
+      onDragStart={(e) => { e.stopPropagation(); e.dataTransfer.setData("text/plain", "move:" + node.id); e.dataTransfer.effectAllowed = "move"; }}
+      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+      onDrop={(e) => {
+        e.preventDefault(); e.stopPropagation();
+        const txt = e.dataTransfer.getData("text/plain");
+        if (!txt) return;
+        const idx = txt.indexOf(":");
+        const kind = idx >= 0 ? txt.slice(0, idx) : txt;
+        const rest = idx >= 0 ? txt.slice(idx + 1) : "";
+        if (kind === "new") {
+          const def = BY_TYPE[rest];
+          const words = def ? pillWords(partsOf(def)) : rest;
+          if (words) onChange(words);
+        } else if (kind === "move" && ctx?.tree) {
+          const src = findNode(ctx.tree, rest);
+          const words = src ? pillWords(rowsOf(src.def).flat()) : "";
+          if (words) onChange(words);
+        }
+      }}
       onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}
       size={Math.max(2, Math.min(28, (text || part.n || "0").length))}
       className={`pz-in ${isBool ? "pz-in-bool" : ""} ${part.k === "variable" ? "!text-mint" : ""} text-center placeholder:text-fog/50`} />
@@ -102,7 +125,7 @@ function PartsLine({ parts, node, ctx }) {
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
       {parts.map((p, i) => (
-        <FieldPill key={i} part={p} value={node.vals[p.n || i]} onChange={(v) => setVal(ctx.tree, ctx.setTree, node.id, p.n || i, v)} />
+        <FieldPill key={i} part={p} value={node.vals[p.n || i]} node={node} ctx={ctx} onChange={(v) => setVal(ctx.tree, ctx.setTree, node.id, p.n || i, v)} />
       ))}
     </div>
   );
@@ -235,7 +258,7 @@ function renderFrame(node, ctx) {
                 {list.length ? renderStack(list, ctx) : (
                   <button type="button" data-testid={`blocky-slot-${node.id}${i ? `-${br.key}` : ""}`}
                     onClick={(e) => { e.stopPropagation(); ctx.setSel(selected ? null : { parentId: node.id, branch: br.key }); }}
-                    className={`pz-empty ml-1 px-3 font-mono text-[10px] text-left transition-colors ${selected ? "!border-mint/70 text-mint bg-mint-deep/40" : "text-fog/60 hover:text-[#131311]"}`}>
+                    className={`pz-empty ml-1 px-3 font-mono text-[10px] text-left transition-colors ${selected ? "!border-mint/70 text-mint bg-mint-deep/40" : "text-fog/60 hover:text-snow"}`}>
                     {selected ? "next block snaps here" : "drop a block here"}
                   </button>
                 )}
@@ -350,7 +373,7 @@ export function CompiledBlock({ label, value, i }) {
       className="blk blk-tab inline-flex items-center gap-3 px-4 py-3 self-start max-w-full" style={{ "--bc": "#E7C85F" }} data-testid={`compiled-block-${i}`}>
       <Tag k="FN" />
       <span className="font-mono text-[13px] text-yel shrink-0">{label}</span>
-      <span className="font-mono text-[12px] text-[#161613]/80 break-all line-clamp-2">{value}</span>
+      <span className="font-mono text-[12px] text-snow/80 break-all line-clamp-2">{value}</span>
     </motion.div>
   );
 }

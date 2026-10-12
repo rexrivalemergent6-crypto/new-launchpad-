@@ -101,3 +101,98 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+## user_problem_statement: Clone circuitdev.fun as a full live-proxy wrapper (CodePad). Restore the dark navy+mint UI from before. Clone ALL pages/sections 1:1 from the main site (nav = Build/Explore/Gallery/Flywheel/New/Docs/My coins + Launch a coin; footer columns Platform/BuildWith/Handbook/Legal). Full coin-launch flow through the proxy (terms -> launch -> wallet signs -> send -> register -> status). Library/Recipes/CoinPage remix must pop blocks into the builder (auto-build via Bolt). Every button wired. LIVE data only, zero mock.
+## backend:
+##   - task: "Launch recorder via /send + /coins relay"
+##     implemented: true
+##     working: true
+##     file: "/app/backend/server.py"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         - working: true
+##           agent: "main"
+##           comment: "c_relay records mint+signature into launches on POST /send or /coins 200; session relay /c/* carries cpad_sid"
+##   - task: "All relay endpoints live (stats/explore/scoreboard/library/stocks/rules/live/img)"
+##     implemented: true
+##     working: true
+##     file: "/app/backend/server.py"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: false
+##     status_history:
+##         - working: true
+##           agent: "main"
+##           comment: "verified 200 live earlier; 10-20s cache only"
+## frontend:
+##   - task: "Dark theme restore (old CodePad look)"
+##     implemented: true
+##     working: true
+##     file: "/app/frontend/tailwind.config.js + index.css + all pages"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         - working: true
+##           agent: "main"
+##           comment: "tokens flipped to #0A0F16/#0E141D/mint #63E6A9; all hardcoded light hexes swept; verified via screenshot"
+##   - task: "Nav = main site exactly (Builder/Explore/Library/Model/Handbook/Changelog/My coins + Deploy) + footer columns"
+##     implemented: true
+##     working: true
+##     file: "/app/frontend/src/components/Sidebar.jsx + Footer.jsx"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         - working: true
+##           agent: "main"
+##           comment: "nav verified in DOM: exactly 7 items; footer has Platform/BuildWith/Handbook/Legal columns"
+##   - task: "Home = main-site sections (announcement bar, live ticker, flagship strip, hero+trust chips, stats, just launched, how-it-works, powers with templates, loop teaser, built-at-birth, CTA)"
+##     implemented: true
+##     working: true
+##     file: "/app/frontend/src/pages/Home.jsx + LiveTicker.jsx"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##   - task: "Launch wizard (name/ticker check, balance, live terms, tx, Phantom co-sign, send, register, status poll)"
+##     implemented: true
+##     working: true
+##     file: "/app/frontend/src/pages/Builder.jsx + lib/walletStore.js"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         - working: true
+##           agent: "main"
+##           comment: "drawer opens, wallet gate shows; final signature needs user Phantom"
+##   - task: "Remix auto-build (Library ask-bolt, Recipes send-to-bolt, CoinPage remix -> blocks appear in builder)"
+##     implemented: true
+##     working: true
+##     file: "/app/frontend/src/pages/Builder.jsx"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##   - task: "Builder pill-drop + drag from inputs; My coins page; internal coin links everywhere; /builder?launch=1"
+##     implemented: true
+##     working: true
+##     file: "/app/frontend/src/components/blockyKit.jsx + CoinCard/Scoreboard/Embed/Explore + MyCoins.jsx"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+## metadata:
+##   created_by: "main_agent"
+##   version: "1.0"
+##   test_sequence: 1
+##   run_ui: true
+## test_plan:
+##   current_focus:
+##     - "full UI pass on all pages (desktop+mobile 390px)"
+##     - "builder flows: palette add, drag, ask-bolt, remix auto-build, launch drawer steps"
+##     - "nav/footer/coin internal navigation, ticker/live data"
+##   stuck_tasks: []
+##   test_all: true
+##   test_priority: "high_first"
+## agent_communication:
+##     - agent: "main"
+##       message: "Dark theme restored, nav cloned exactly from circuitdev.fun, home sections cloned 1:1, launch wizard wired end-to-end through /api/c/* relay, remix auto-build added, all external coin links made internal. Test everything; wallet signature step can't be completed without Phantom - verify up to the signature gate."

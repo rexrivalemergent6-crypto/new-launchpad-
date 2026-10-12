@@ -20,6 +20,8 @@ import Updates from "@/pages/Updates";
 import { Terms, Risks, Privacy } from "@/pages/Legal";
 import Brand from "@/pages/Brand";
 import CoinPage from "@/pages/CoinPage";
+import MyCoins from "@/pages/MyCoins";
+import Footer from "@/components/Footer";
 import Embed from "@/pages/Embed";
 
 class ErrorBoundary extends React.Component {
@@ -52,6 +54,12 @@ function ScrollToTop() {
     window.scrollTo(0, 0);
   }, [pathname]);
   return null;
+}
+
+function FooterRoute() {
+  const { pathname } = useLocation();
+  if (pathname === "/embed") return null;
+  return <Footer />;
 }
 
 function App() {
@@ -97,10 +105,12 @@ function App() {
               <Route path="/risks" element={<Risks />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/brand" element={<Brand />} />
-              <Route path="/coin/:mint" element={<CoinPage />} />
+              <Route path="/c/:mint" element={<CoinPage />} />
               <Route path="/embed" element={<Embed />} />
+              <Route path="/coins" element={<MyCoins />} />
               <Route path="*" element={<Home />} />
             </Routes>
+            <FooterRoute />
           </main>
         </ErrorBoundary>
       </BrowserRouter>

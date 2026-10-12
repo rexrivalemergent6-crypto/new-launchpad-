@@ -60,7 +60,7 @@ export default function Recipes() {
             data-testid={`recipe-filter-${k.replace(/\s+/g, "-").toLowerCase()}`}
             onClick={() => setKind(k)}
             className={`font-mono text-[11px] px-3.5 py-1.5 rounded-full border transition-colors ${
-              kind === k ? "bg-mint-deep text-mint border-mint/40" : "text-fog border-line hover:text-[#131311]"
+              kind === k ? "bg-mint-deep text-mint border-mint/40" : "text-fog border-line hover:text-snow"
             }`}
           >
             {k}
@@ -94,7 +94,7 @@ export default function Recipes() {
               <Link
                 to={`/builder?q=${encodeURIComponent(r.s)}`}
                 data-testid={`recipe-open-${i}`}
-                className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl border border-line hover:border-mint/50 hover:text-mint text-[#161613] font-semibold py-2.5 text-sm transition-all duration-200"
+                className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl border border-line hover:border-mint/50 hover:text-mint text-snow font-semibold py-2.5 text-sm transition-all duration-200"
               >
                 Send to Bolt
               </Link>

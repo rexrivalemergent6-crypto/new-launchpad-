@@ -14,7 +14,7 @@ html {
 
 body {
     margin: 0;
-    background: #F6F0DC;
+    background: #0A0F16;
     color: #E8EDF5;
     font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -23,13 +23,13 @@ body {
 }
 
 ::selection {
-    background: rgba(240, 176, 74, 0.5);
-    color: #131311;
+    background: rgba(99, 230, 169, 0.32);
+    color: #E8EDF5;
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: #0A0F16; }
-::-webkit-scrollbar-thumb { background: #D8CFAF; border-radius: 8px; border: 2px solid #F6F0DC; }
+::-webkit-scrollbar-thumb { background: #1D2938; border-radius: 8px; border: 2px solid #0A0F16; }
 ::-webkit-scrollbar-thumb:hover { background: #2A3850; }
 
 @layer utilities {
@@ -167,19 +167,19 @@ body {
 }
 @media (min-width: 640px) { .pz { --arm: 40px; --nx: 18px; } }
 
-/* ------- light neo-brutal block editor (build page) ------- */
+/* ------- block editor (build page, dark workshop) ------- */
 .pz {
   --arm: 34px;
   --nx: 0px;
-  color: #161613;
+  color: #0A0F16;
   font-family: 'Outfit', sans-serif;
 }
 .pz-body {
   position: relative;
   background: var(--c, #F0B04A);
-  border: 3px solid #131311;
+  border: 3px solid rgba(0, 0, 0, 0.55);
   border-radius: 14px;
-  box-shadow: 4px 4px 0 #131311;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
 }
 .pz-tab::after {
   content: "";
@@ -189,7 +189,7 @@ body {
   width: 44px;
   height: 13px;
   background: var(--c, #F0B04A);
-  border: 3px solid #131311;
+  border: 3px solid rgba(0, 0, 0, 0.55);
   border-top: none;
   border-radius: 0 0 11px 11px;
   box-sizing: border-box;
@@ -202,8 +202,8 @@ body {
   left: 22px;
   width: 44px;
   height: 9px;
-  background: var(--panel-bg, #EAF0F9);
-  border: 3px solid #131311;
+  background: var(--panel-bg, #0C1219);
+  border: 3px solid rgba(0, 0, 0, 0.55);
   border-top: none;
   border-radius: 0 0 11px 11px;
   box-sizing: border-box;
@@ -220,7 +220,7 @@ body {
   width: 74px;
   height: 20px;
   background: var(--c, #F0B04A);
-  border: 3px solid #131311;
+  border: 3px solid rgba(0, 0, 0, 0.55);
   border-bottom: none;
   border-radius: 999px 999px 0 0;
   box-sizing: border-box;
@@ -241,7 +241,7 @@ body {
 }
 .pz-arm {
   width: var(--arm);
-  border-left: 3px solid #131311;
+  border-left: 3px solid rgba(0, 0, 0, 0.55);
   background: var(--c, #F0B04A);
   border-radius: 0;
   min-height: 30px;
@@ -255,16 +255,16 @@ body {
 .pz-in {
   background: #ffffff;
   color: #161613;
-  border: 2.5px solid #131311;
+  border: 2.5px solid rgba(0, 0, 0, 0.55);
   border-radius: 999px;
   height: 30px;
   padding: 0 12px;
   font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
   font-size: 12.5px;
-  box-shadow: 2px 2px 0 #131311;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
 }
-.pz-in:focus { box-shadow: 0 0 0 3px rgba(240, 176, 74, 0.65); outline: none; }
+.pz-in:focus { box-shadow: 0 0 0 3px rgba(99, 230, 169, 0.55); outline: none; }
 .pz-in-bool { border-radius: 4px; clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0 50%); padding: 0 14px; }
 .pz-tag {
   display: inline-flex;
@@ -274,63 +274,56 @@ body {
   height: 21px;
   padding: 0 5px;
   background: rgba(255, 255, 255, 0.92);
-  border: 2px solid #131311;
+  border: 2px solid rgba(0, 0, 0, 0.55);
   border-radius: 7px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 9.5px;
   font-weight: 700;
   color: #161613;
 }
-.pz-over { outline: 3px dashed #131311; outline-offset: 3px; border-radius: 10px; }
+.pz-over { outline: 3px dashed #63E6A9; outline-offset: 3px; border-radius: 10px; }
 .pz-empty {
-  border: 2.5px dashed #13131199;
+  border: 2.5px dashed rgba(232, 237, 245, 0.28);
   border-radius: 12px;
-  color: #13131199;
-  background: rgba(255, 255, 255, 0.45);
+  color: rgba(232, 237, 245, 0.55);
+  background: rgba(255, 255, 255, 0.05);
 }
 .pz-ghost {
-  border: 2.5px dashed #13131188;
+  border: 2.5px dashed rgba(99, 230, 169, 0.45);
   border-radius: 12px;
   min-height: 40px;
-  color: #13131188;
-  background: rgba(255, 255, 255, 0.45);
+  color: rgba(232, 237, 245, 0.55);
+  background: rgba(255, 255, 255, 0.05);
 }
 @keyframes pz-pop { from { opacity: 0; } to { opacity: 1; } }
 .pz-pop { animation: pz-pop 0.28s ease-out; }
 
-/* build page light theme */
-.nbb-page { background: #F6F0DC; color: #161613; }
+/* build page dark theme */
+.nbb-page { background: #0A0F16; color: #E8EDF5; }
 .nbb-pill {
-  background: #ffffff;
-  border: 3px solid #131311;
+  background: #0E141D;
+  border: 1.5px solid rgba(148, 163, 184, 0.18);
   border-radius: 16px;
-  box-shadow: 4px 4px 0 #131311;
+  box-shadow: 0 10px 30px -14px rgba(0, 0, 0, 0.7);
 }
 .nbb-canvas {
-  background: #EAF0F9;
-  background-image: radial-gradient(rgba(19, 19, 17, 0.10) 1.3px, transparent 1.3px);
+  background: #0C1219;
+  background-image: radial-gradient(rgba(148, 163, 184, 0.13) 1.3px, transparent 1.3px);
   background-size: 26px 26px;
 }
 .nbb-rail {
-  background: #F6F0DC;
-  border-right: 3px solid #131311;
+  background: #0A0F16;
+  border-right: 1.5px solid rgba(148, 163, 184, 0.14);
 }
 .nbb-rail-btn {
-  border: 3px solid #131311;
+  border: 2.5px solid rgba(0, 0, 0, 0.55);
   border-radius: 12px;
-  box-shadow: 3px 3px 0 #131311;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
-  color: #161613;
+  color: #0A0F16;
   background: var(--c);
 }
-.nbb-rail-btn.active { background: #ffffff; box-shadow: 0 0 0 3px #F6F0DC, 0 0 0 6px #13131133; }
-.nbb-family-head { border: 3px solid #131311; border-radius: 0; box-shadow: none; }
-
-/* ------- site-wide neo-brutal pass ------- */
-[class*="bg-panel"] { box-shadow: 5px 5px 0 #131311; }
-[class*="border-line"] { border-color: #131311 !important; border-width: 3px; }
-[class*="bg-mint-deep"] { background: #FBF3D9 !important; }
-.nbb-banner { background: #D6F26E; border-bottom: 3px solid #131311; }
-.blk { background: #ffffff; color: #161613; }
-.blk .badge { background: rgba(255,255,255,0.9); }
+.nbb-rail-btn.active { background: #ffffff; box-shadow: 0 0 0 3px #0A0F16, 0 0 0 5px rgba(99, 230, 169, 0.55); }
+.nbb-family-head { border-bottom: 1.5px solid rgba(148, 163, 184, 0.14); }
+.nbb-banner { background: #12261E; border-bottom: 1.5px solid rgba(148, 163, 184, 0.14); }

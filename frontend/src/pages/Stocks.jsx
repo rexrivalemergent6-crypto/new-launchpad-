@@ -39,7 +39,7 @@ export default function Stocks() {
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link to={`/builder?q=${encodeURIComponent(STOCK_RULE)}`} data-testid="stocks-deploy-button"
-            className="inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#131311] font-bold px-6 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
+            className="inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#0A0F16] font-bold px-6 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
             Launch a stock coin <ArrowUpRight size={16} />
           </Link>
           <Link to="/library?q=stock" data-testid="stocks-open-library"
@@ -66,7 +66,7 @@ export default function Stocks() {
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="font-mono text-sm font-bold text-yel">{s.sym}</div>
-                <div className="font-mono text-[12px] tabular text-[#161613]" data-testid={`stock-price-${s.sym}`}>
+                <div className="font-mono text-[12px] tabular text-snow" data-testid={`stock-price-${s.sym}`}>
                   {s.price != null ? `$${s.price >= 100 ? Math.round(s.price) : s.price.toFixed(2)}` : "—"}
                 </div>
               </div>

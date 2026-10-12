@@ -91,3 +91,13 @@ export async function refreshMe() {
         walletStore.set({ session: null, checked: true });
     }
 }
+
+/** Ask the connected Phantom to sign a Solana VersionedTransaction. */
+export async function signTransaction(tx) {
+    const p = getProvider();
+    if (!p || !p.signTransaction) throw Error("No wallet that can sign transactions — install Phantom (phantom.com) and reload.");
+    let wallet = walletStore.get().wallet;
+    if (!wallet) wallet = await connectWallet();
+    if (!wallet) throw Error("Connect your wallet first.");
+    return p.signTransaction(tx);
+}

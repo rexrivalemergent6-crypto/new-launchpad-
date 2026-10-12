@@ -33,7 +33,7 @@ export default function Updates() {
           >
             <span className="font-mono text-mint text-sm shrink-0">v{u.v}</span>
             <div>
-              <p className="text-[#161613] leading-relaxed">{u.d}</p>
+              <p className="text-snow leading-relaxed">{u.d}</p>
               <p className="font-mono text-[10px] text-fog mt-2">{u.when}</p>
             </div>
           </motion.div>

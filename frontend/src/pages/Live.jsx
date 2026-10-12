@@ -45,7 +45,7 @@ export default function Live() {
               <span className={`font-mono text-[10px] px-2 py-0.5 rounded-md border ${KIND_STYLE[t.kind] || "text-fog border-line"}`}>
                 {t.kind}
               </span>
-              <span className="flex-1 text-sm text-[#161613] truncate px-2">{t.text}</span>
+              <span className="flex-1 text-sm text-snow truncate px-2">{t.text}</span>
               <span className="font-mono text-[10px] text-fog shrink-0">{timeAgo(t.at)}</span>
             </Link>
           </motion.div>
