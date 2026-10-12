@@ -4,18 +4,28 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X, Wallet } from "lucide-react";
 import { useStats } from "@/lib/relay";
 import { useWallet, signInWithWallet } from "@/lib/walletStore";
+import XIcon from "@/components/XIcon";
+
+export const CodePadMark = ({ size = 30 }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
+    <defs>
+      <linearGradient id="cpad-g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#3FE87F" />
+        <stop offset="1" stopColor="#22D3EE" />
+      </linearGradient>
+    </defs>
+    <rect x="9" y="9" width="46" height="46" rx="13" fill="none" stroke="url(#cpad-g)" strokeWidth="4.5" />
+    <path d="M22 24l10 8-10 8" stroke="url(#cpad-g)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <circle cx="41.5" cy="23.5" r="4.2" fill="#38BDF8" />
+    <rect x="33" y="39.5" width="15" height="4.6" rx="2.3" fill="url(#cpad-g)" />
+  </svg>
+);
 
 export const Logo = ({ small }) => (
   <span className="inline-flex items-center gap-2.5 select-none">
-    <svg width={small ? 26 : 30} height={small ? 26 : 30} viewBox="0 0 64 64" aria-hidden="true">
-      <rect x="24" y="11" width="16" height="12" rx="6" fill="#4ADE80" />
-      <rect x="12" y="20" width="40" height="30" rx="9" fill="#4ADE80" />
-      <circle cx="24.5" cy="35" r="3.2" fill="#0A0F16" />
-      <circle cx="39.5" cy="35" r="3.2" fill="#0A0F16" />
-      <rect x="27" y="42" width="10" height="3" rx="1.5" fill="#0A0F16" opacity="0.85" />
-    </svg>
+    <CodePadMark size={small ? 26 : 30} />
     <span className="font-extrabold tracking-tight" style={{ fontSize: small ? 20 : 23 }}>
-      <span className="text-snow">Coin</span>
+      <span className="text-snow">Code</span>
       <span className="text-mint">Pad</span>
     </span>
   </span>
@@ -126,9 +136,21 @@ function Panel({ onPick }) {
         >
           Deploy a coin
         </Link>
-        <p className="px-2 font-mono text-[10px] leading-relaxed text-fog/70">
-          everything runs here — your wallet signs, CoinPad relays the rest
-        </p>
+        <div className="flex items-center justify-between px-2">
+          <p className="font-mono text-[10px] leading-relaxed text-fog/70">
+            your wallet signs · CodePad relays the rest
+          </p>
+          <a
+            href="https://x.com/usecodepad"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="x-social-link"
+            aria-label="CodePad on X"
+            className="shrink-0 w-8 h-8 rounded-lg border border-line bg-panel flex items-center justify-center text-fog hover:text-snow hover:border-mint/40 transition-colors"
+          >
+            <XIcon size={13} />
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -155,14 +177,26 @@ export default function Sidebar() {
           <Link to="/" data-testid="nav-home-mobile">
             <Logo small />
           </Link>
-          <button
-            data-testid="menu-toggle-button"
-            onClick={() => setOpen(!open)}
-            aria-label="Menu"
-            className="w-11 h-11 rounded-xl border border-line bg-panel flex items-center justify-center text-snow"
-          >
-            {open ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          <div className="flex items-center gap-2">
+            <a
+              href="https://x.com/usecodepad"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="x-social-link-mobile"
+              aria-label="CodePad on X"
+              className="w-11 h-11 rounded-xl border border-line bg-panel flex items-center justify-center text-fog hover:text-mint transition-colors"
+            >
+              <XIcon size={15} />
+            </a>
+            <button
+              data-testid="menu-toggle-button"
+              onClick={() => setOpen(!open)}
+              aria-label="Menu"
+              className="w-11 h-11 rounded-xl border border-line bg-panel flex items-center justify-center text-snow"
+            >
+              {open ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </div>
       </header>
 

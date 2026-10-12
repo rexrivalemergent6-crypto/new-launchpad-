@@ -207,7 +207,7 @@ export default function Builder() {
           </button>
         </div>
         <p className="mt-3 font-mono text-[11px] text-fog">
-          bolt reads your line and snaps it into blocks — the whole thing runs through coinpad's relay
+          bolt reads your line and snaps it into blocks — the whole thing runs through CodePad's relay
         </p>
       </motion.div>
 

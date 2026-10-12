@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
 import Marquee from "@/components/Marquee";
+import XIcon from "@/components/XIcon";
 import StatStrip from "@/components/StatStrip";
 import CoinCard from "@/components/CoinCard";
 import { RuleStack, MiniBlock } from "@/components/blocks";
@@ -280,11 +281,14 @@ export default function Home() {
 
           <div className="mt-20 pt-8 border-t border-line flex flex-col sm:flex-row items-center justify-between gap-4 text-left">
             <p className="font-mono text-[11px] text-fog/80 max-w-md leading-relaxed">
-              CoinPad is its own front door: your wallet signs, our relay does the running, and every
+              CodePad is its own front door: your wallet signs, our relay does the running, and every
               number you see streams in live.
             </p>
             <div className="flex items-center gap-5 font-mono text-[11px] text-fog">
               <Link to="/library" className="hover:text-mint transition-colors">all 134 blocks</Link>
+              <a href="https://x.com/usecodepad" target="_blank" rel="noopener noreferrer" data-testid="footer-x-link" className="hover:text-mint transition-colors inline-flex items-center gap-1.5">
+                <XIcon size={12} /> CodePad
+              </a>
               <span>relay: <span className="text-mint">live</span></span>
             </div>
           </div>

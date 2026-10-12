@@ -1,4 +1,9 @@
-# CoinPad — Relay Portal for Circuit (circuitdev.fun)
+# CodePad — Relay Portal for Circuit (circuitdev.fun)
+
+## Brand (2026-10-12)
+- Renamed CoinPad → **CodePad** ("Code" white + "Pad" green), per user request + reference logo.
+- Logo mark: neon gradient (green→cyan) rounded-square with terminal chevron, dot and underscore — recreated as SVG in Sidebar (CodePadMark) and /public/favicon.svg; favicon + tab title "CodePad — One line in. A coin out." updated in index.html.
+- Social: X only — https://x.com/usecodepad (sidebar + footer + mobile bar, XIcon component). No other social links anywhere.
 
 ## Original problem statement
 "i want to clone https://circuitdev.fun/ and make a wrapper of this basically" → refined via Q&A into: a thin wrapper/portal — "strip their backend and crawl and use apis so no need to hike anything just relay to them… make sure everything is proxy backend api and we are just a portal all functions through the mainsite relay." Later: design per Jesse Pollak reference screenshots (dark navy-black + mint green, CodePad-style two-tone logo, sidebar nav, blocky builder canvas), blocky builder page, smooth on mobile + PC, all tokens/stocks/AI/buy-back data turned through the upstream API proxy, wallet connect handed off to the main site's Solana mainnet flow, all build templates/recipes copied and matched with our UI.
