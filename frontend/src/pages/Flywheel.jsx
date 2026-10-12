@@ -1,23 +1,17 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight, Flame, Bot } from "lucide-react";
-import { relayImg, useScoreboard, useStats, useExplore, fmtNum } from "@/lib/relay";
+import { useOurLedger } from "@/lib/relay";
 
 const EASE = [0.16, 1, 0.3, 1];
 
 export default function Flywheel() {
-  const { data: board } = useScoreboard();
-  const { data: stats } = useStats();
-  const { data: explore } = useExplore();
-
-  const aiAgents = (explore?.cards || []).filter((c) => c.usesAi).length;
+  const ours = useOurLedger();
 
   const totals = [
-    { label: "Fee per launch", value: "0.05", unit: "SOL", fixed: true },
-    { label: "Sent to holders", value: board?.totals?.paidSol?.text, unit: "SOL" },
-    { label: "Repurchased", value: board?.totals?.buybackSol?.text, unit: "SOL" },
-    { label: "Into tokenized shares", value: board?.totals?.stocksSol?.text, unit: "SOL" },
-    { label: "Payout moments", value: board?.totals?.payouts?.text, unit: "" },
-    { label: "AI agents on duty", value: aiAgents ? `${aiAgents}` : null, unit: "", fixed: false },
+    { label: "Fee per launch", value: "0.05", unit: "SOL", note: "set on-chain, same for every coin" },
+    { label: "Launches through CodePad", value: ours.count, unit: "", note: "each one feeds the program" },
+    { label: "SOL they traded", value: ours.volumeSol ? ours.volumeSol.toFixed(2) : "0", unit: "SOL", note: "live from our coins" },
+    { label: "AI starter per coin", value: "0.0022", unit: "SOL", note: "funds its AI blocks from birth" },
   ];
 
   return (
@@ -25,12 +19,12 @@ export default function Flywheel() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: EASE }}>
         <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">the CodePad program</p>
         <h1 className="mt-4 font-extrabold tracking-[-0.03em] text-[clamp(2.4rem,5vw,4.2rem)] leading-[1.05]">
-          Launch fees buy back <span className="text-mint">and burn $CODEPAD.</span>
+          Launch fees will buy back <span className="text-mint">and burn $CODEPAD.</span>
         </h1>
         <p className="mt-4 text-fog max-w-xl leading-relaxed">
-          Every launch on CodePad pays a small fee. The program uses it to buy $CODEPAD back on the open
-          market and torch it — with AI agents running the rails around the clock. Everything lands
-          on-chain where anyone can verify it.
+          Every launch on CodePad pays a small fee. Once our own coin is live, the program uses
+          those fees to buy $CODEPAD back on the open market and torch it — with AI agents running
+          the rails around the clock. Everything lands on-chain where anyone can verify it.
         </p>
       </motion.div>
 
@@ -41,12 +35,15 @@ export default function Flywheel() {
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">torched so far</p>
         </div>
         <div className="mt-4 font-mono text-5xl lg:text-7xl font-medium tabular text-snow" data-testid="flywheel-burned-total">
-          {stats ? `${fmtNum(6600000)} $CODEPAD` : "···"}
+          0 $CODEPAD
         </div>
-        <p className="mt-3 text-fog text-sm">every torch event is public and verifiable on-chain.</p>
+        <p className="mt-3 text-fog text-sm" data-testid="flywheel-burned-note">
+          the counter starts the day our own coin launches — nothing has been torched yet, and no
+          other token’s numbers count here. Every torch event will be public and verifiable on-chain.
+        </p>
       </motion.div>
 
-      <div className="mt-10 grid grid-cols-2 lg:grid-cols-3 gap-4" data-testid="flywheel-totals">
+      <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-4" data-testid="flywheel-totals">
         {totals.map((t, i) => (
           <motion.div
             key={t.label}
@@ -57,43 +54,26 @@ export default function Flywheel() {
             className="border border-line rounded-2xl bg-panel p-6"
           >
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fog flex items-center gap-1.5">
-              {t.label === "AI agents on duty" && <Bot size={12} className="text-mint" />}
+              {t.label.startsWith("AI") && <Bot size={12} className="text-mint" />}
               {t.label}
             </div>
             <div className="mt-3 font-mono text-3xl tabular text-snow" data-testid={`flywheel-total-${i}`}>
-              {t.fixed ? t.value : t.value ?? "···"}
+              {t.value}
               {t.unit && <span className="text-sm text-fog ml-1.5">{t.unit}</span>}
             </div>
+            <div className="mt-2 font-mono text-[10px] text-fog/70">{t.note}</div>
           </motion.div>
         ))}
       </div>
 
-      <h2 className="mt-16 text-2xl lg:text-4xl font-bold tracking-tight">Biggest torch events</h2>
-      <div className="mt-6 space-y-3 max-w-2xl" data-testid="flywheel-burned-list">
-        {(board?.lists?.burned || []).map((item, i) => (
-          <motion.a
-            key={item.slug || i}
-            initial={{ opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.45, delay: Math.min(i * 0.05, 0.3), ease: EASE }}
-            className="flex items-center gap-3 border border-line rounded-xl bg-panel px-4 py-3 hover:border-mint/35 transition-colors"
-            data-testid={`burned-row-${i}`}
-          >
-            {item.image && <img src={relayImg(item.image)} alt={item.name} loading="lazy" className="w-9 h-9 rounded-lg object-cover" />}
-            <div className="flex-1 text-sm font-semibold truncate">
-              {item.name} <span className="text-mint font-mono text-xs">${item.ticker}</span>
-            </div>
-            <div className="font-mono text-sm tabular text-mint">{item.text}</div>
-          </motion.a>
-        ))}
-        {!board && <div className="border border-line rounded-xl bg-panel h-14 animate-pulse" />}
-      </div>
-
       <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, ease: EASE }}
         className="mt-14 border border-line rounded-2xl bg-panel p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-        <p className="text-fog max-w-md">Every launch feeds the program. Ship yours with a single sentence.</p>
-        <a href="/builder" data-testid="flywheel-deploy-button"
+        <p className="text-fog max-w-md">
+          {ours.count
+            ? `Your launches have sent ${ours.volumeSol ? ours.volumeSol.toFixed(2) : "0"} SOL through the program so far.`
+            : "Every launch feeds the program. Ship yours with a single sentence."}
+        </p>
+        <a href="/builder?launch=1" data-testid="flywheel-deploy-button"
           className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#0A0F16] font-bold px-6 py-3.5 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
           Deploy a coin <ArrowUpRight size={17} />
         </a>

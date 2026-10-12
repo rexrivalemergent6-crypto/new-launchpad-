@@ -329,29 +329,27 @@ body {
 .nbb-rail-btn {
   width: 52px;
   height: 46px;
-  border: 3px solid rgba(0, 0, 0, 0.55);
-  border-radius: 15px;
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.42);
+  border: 2.5px solid color-mix(in srgb, var(--c) 62%, transparent);
+  border-radius: 14px;
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
   font-size: 12px;
-  color: #0A0F16;
-  background: var(--c);
+  color: color-mix(in srgb, var(--c) 78%, #E8EDF5);
+  background: color-mix(in srgb, var(--c) 17%, #0E141D);
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 .nbb-rail-btn:active { transform: scale(0.94); }
 .nbb-rail-btn .rail-inner { display: grid; place-items: center; }
-.nbb-rail-btn.active { background: #ffffff; }
-.nbb-rail-btn.active .rail-inner {
-  width: 30px;
-  height: 30px;
+.nbb-rail-btn.active {
   background: var(--c);
-  border: 2.5px solid rgba(0, 0, 0, 0.55);
-  border-radius: 10px;
+  color: #0A0F16;
+  border-color: var(--c);
+  box-shadow: 0 0 0 2px #0A0F16, 0 0 20px color-mix(in srgb, var(--c) 45%, transparent);
 }
+.nbb-rail-btn.active .rail-inner { color: #0A0F16; }
 .nbb-family-head { border-bottom: 1.5px solid rgba(148, 163, 184, 0.14); }
 .nbb-banner { background: #12261E; border-bottom: 1.5px solid rgba(148, 163, 184, 0.14); }
 

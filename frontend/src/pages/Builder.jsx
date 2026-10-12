@@ -360,9 +360,9 @@ export default function Builder() {
 
         <div className="px-3 sm:px-4 lg:px-8 pb-2 sm:pb-3 flex items-center gap-2 sm:gap-3" data-testid="blocky-mode-chips">
           <button onClick={() => { setSelFamily("SK"); setFlyout(true); }} data-testid="chip-stocks"
-            className="nbb-ctl sm:!h-auto inline-flex items-center gap-2.5 px-4 sm:px-5 sm:py-3 text-[15px] sm:text-lg shrink-0" style={{ background: "#D6F26E", color: "#0A0F16" }}>
-            <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-white border-2 sm:border-[2.5px] border-[#131311] flex items-center justify-center font-mono text-[9px] sm:text-[11px] font-bold">SK</span>
-            Stocks <span className="rounded-full bg-[#F2A9CB] border-2 sm:border-[2.5px] border-[#131311] font-mono text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 leading-none">NEW</span>
+            className="nbb-ctl nbb-ctl-dark sm:!h-auto inline-flex items-center gap-2.5 px-4 sm:px-5 sm:py-3 text-[15px] sm:text-lg shrink-0 !border-[#D6F26E66] !text-[#D6F26E] hover:!border-[#D6F26E] transition-colors">
+            <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg border-2 sm:border-[2.5px] border-[#D6F26E99] text-[#D6F26E] flex items-center justify-center font-mono text-[9px] sm:text-[11px] font-bold">SK</span>
+            Stocks <span className="rounded-full bg-[#F2A9CB1F] border-2 sm:border-[2.5px] border-[#F2A9CB66] text-[#F2A9CB] font-mono text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 leading-none">NEW</span>
           </button>
           <button onClick={() => setShowLog(!showLog)} data-testid="chip-log"
             className={`nbb-ctl sm:!h-auto px-4 sm:px-5 sm:py-3 text-[14px] sm:text-lg shrink-0 ${showLog ? "" : "nbb-ctl-dark"}`}

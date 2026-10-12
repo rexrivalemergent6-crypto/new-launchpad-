@@ -18,7 +18,7 @@ export default function FamilyFlyout({ code, fam, palette, onAdd, onClose }) {
           <p className="text-[13px] text-snow/65 leading-snug line-clamp-2">{fam.desc}</p>
         </div>
         <button type="button" onClick={onClose} aria-label="close blocks" data-testid="blocky-flyout-close"
-          className="shrink-0 w-9 h-9 rounded-xl border-[3px] border-black/55 bg-[#E8EDF5] text-[#0A0F16] grid place-items-center shadow-[2px_2px_0_rgba(0,0,0,0.42)]">
+                className="shrink-0 w-9 h-9 rounded-xl border-[2.5px] border-white/20 bg-white/5 text-snow/80 hover:text-snow hover:border-white/40 grid place-items-center transition-colors">
           <Close size={16} strokeWidth={3} />
         </button>
       </div>

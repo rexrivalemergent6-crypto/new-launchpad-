@@ -1,0 +1,83 @@
+{
+  "summary": "Full frontend verification of CodePad bifrost rebuild at 1440x900 + 390x844. All acceptance criteria PASS: hero blueprint button, 5-step launch wizard, explore ledger-only, upstream-stats removal, dark blocks, no overflow, zero console errors.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": { "ui_bugs": [], "integration_issues": [], "design_issues": [] },
+  "verifications": {
+    "A_hero": {
+      "desktop_btn_box": {"w": 287, "h": 72},
+      "mobile_btn_box": {"w": 245, "h": 60, "x": 24, "y": 636.75},
+      "btn_above_input_desktop": true,
+      "btn_above_input_mobile": true,
+      "pick_blueprint_text_count": 1,
+      "click_navigates_to_recipes": true,
+      "has_CIRCUITINU": false,
+      "has_6.6M": false,
+      "home_mobile_scrollWidth": 390
+    },
+    "B_recipes": {
+      "page_renders": true,
+      "blueprint_count_text": "22 blueprints for your coin.",
+      "builder_links": 26,
+      "cards_route_to_builder": true
+    },
+    "C_launch_wizard": {
+      "query_launch_1_opens_drawer_desktop": true,
+      "query_launch_1_opens_drawer_mobile": true,
+      "step_1_title": "Make your coin",
+      "step_indicator_text": "STEP 1 OF 5",
+      "wallet_gate_connect_button_present": true,
+      "default_codepad_logo_image_shown": true,
+      "cost_paragraph_signed_out": "Sign in to see the live launch costs. You see every amount again before you sign.",
+      "next_button_present": true,
+      "no_crash_zero_wallet": true
+    },
+    "D_explore_ledger_only": {
+      "explore_empty_ours_testid_count": 1,
+      "launch_a_coin_cta_present": true,
+      "no_upstream_CIRCUITINU_text": true,
+      "ledger_api_launches_count": 0,
+      "mobile_scrollWidth": 390
+    },
+    "E_stats_honesty": {
+      "home_has_counter_text": true,
+      "no_upstream_coin_names_rendered": true,
+      "flagship_strip_shows_honest_line": "CodePad's own counter starts with your first launch"
+    },
+    "F_dark_blocks": {
+      "pz_body_backgroundColor_sample": "color(srgb 0.185 0.255 0.317) — dark EV family tint",
+      "pz_body_border_sample": "rgb(146, 201, 239) — bright blue EV family",
+      "pz_body_color_sample": "rgb(232, 237, 245) — light text",
+      "verified_dark_bodies_bright_border_light_text": true
+    },
+    "G_regressions": {
+      "rules_remix_testids": 17,
+      "rules_launch_testids": 17,
+      "no_horizontal_overflow": {"home":390,"explore":390,"recipes":390,"builder":390,"rules":390}
+    },
+    "console_errors": {
+      "home_desktop": 0,
+      "home_mobile": 0,
+      "explore_desktop": 0,
+      "explore_mobile": 0,
+      "recipes_desktop": 0,
+      "builder_desktop": 0,
+      "builder_launch_1_desktop": 0,
+      "builder_launch_1_mobile": 0,
+      "rules_desktop": 0
+    }
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Builder.jsx is at 590 lines — still manageable but close to the 700 split threshold if more features added.",
+    "LaunchWizard.jsx (344 lines) consolidates 5-step flow well; step 2+ behind wallet gate was not reachable without Phantom but step 1 structure + cost copy + default CodePad logo all render correctly without crash."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (frontend-only run; GET /api/portal/launches returned {launches:[],count:0})", "frontend": "100%" },
+  "test_credentials": "none (no wallet connection attempted per instructions)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All bifrost rebuild acceptance pass. Hero blueprint button 245x60 (mobile) / 287x72 (desktop) rendered above hero-sentence-input, single 'Pick a blueprint' text (no duplicate link). /recipes shows 22 blueprint cards with 26 /builder links. /explore ledger empty state honest CTA to launch. /builder?launch=1 opens LaunchWizard STEP 1 OF 5 'Make your coin' with Connect wallet gate, default CodePad mark image, Next button. Dark pz-body backgrounds (dark tint) with bright family borders and light text verified. No upstream coin names ('CIRCUITINU'/'6.6M') anywhere. All 5 pages have scrollWidth=390 at mobile (no horizontal overflow). Zero console errors across all tested pages. Ledger API returns 0 launches so wizard steps 2-5 could not be verified end-to-end without wallet; wizard renders step 1 wallet gate without crash as spec'd.",
+  "rca of the issue": "n/a — no issues found"
+}

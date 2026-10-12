@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import CoinCard from "@/components/CoinCard";
-import { useExplore, useStocks } from "@/lib/relay";
+import { useOurLedger, useStocks } from "@/lib/relay";
 
 const STOCK_RULE = "when the coin collects fees, put half into tokenized NVDA and buy my coin back with the rest";
 
@@ -15,15 +15,15 @@ const NAMES = {
 };
 
 export default function Stocks() {
-  const { data } = useExplore();
+  const ours = useOurLedger();
   const { data: prices, isError: pricesError } = useStocks();
-  const cards = (data?.cards || []).filter((c) => c.usesStocks);
+  const cards = ours.coins.filter((c) => c.card?.usesStocks);
 
-  // live symbols straight from the relay (keys look like "TSLAx"); names are our labels
+  // every symbol the relay sends (keys look like "TSLAx"); NAMES only labels known ones
   const live = Object.entries(prices?.prices || {})
-    .map(([k, v]) => ({ sym: k.replace(/x$/, ""), price: v }))
-    .filter((s) => NAMES[s.sym]);
+    .map(([k, v]) => ({ sym: k.replace(/x$/, ""), price: v }));
   const tiles = (live.length ? live : Object.keys(NAMES).map((sym) => ({ sym, price: null })))
+    .filter((s, i, a) => a.findIndex((x) => x.sym === s.sym) === i)
     .sort((a, b) => a.sym.localeCompare(b.sym));
 
   return (
@@ -70,7 +70,7 @@ export default function Stocks() {
                   {s.price != null ? `$${s.price >= 100 ? Math.round(s.price) : s.price.toFixed(2)}` : "—"}
                 </div>
               </div>
-              <div className="text-[12px] text-fog mt-0.5 truncate">{NAMES[s.sym]}</div>
+              <div className="text-[12px] text-fog mt-0.5 truncate">{NAMES[s.sym] || s.sym}</div>
             </motion.div>
           ))}
         </div>
@@ -79,10 +79,12 @@ export default function Stocks() {
       <h2 className="mt-16 text-2xl lg:text-4xl font-bold tracking-tight">Coins stacking shares right now</h2>
       <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-testid="stocks-coins-grid">
         {cards.map((c, i) => (
-          <CoinCard key={c.slug || i} coin={c} index={i} />
+          <CoinCard key={c.slug || i} coin={c.card} index={i} />
         ))}
         {cards.length === 0 && (
-          <p className="text-fog font-mono text-sm">loading relayed coins…</p>
+          <div className="sm:col-span-2 lg:col-span-3 border border-line rounded-2xl bg-panel p-8" data-testid="stocks-coins-empty">
+            <p className="text-fog">No coin on CodePad holds tokenized shares yet — launch one above and it shows up here.</p>
+          </div>
         )}
       </div>
     </div>
