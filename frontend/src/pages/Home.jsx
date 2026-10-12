@@ -365,7 +365,7 @@ export default function Home() {
 
       {/* ============ BUILT AT BIRTH ============ */}
       <section className="max-w-[1240px] mx-auto px-6 lg:px-10 py-20 lg:py-28">
-        <div className="grid lg:grid-cols-2 gap-10 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start min-w-0">
           <div>
             <h2 className="text-3xl lg:text-5xl font-bold tracking-tight">
               Built at birth. <span className="text-mint">Runs forever.</span>

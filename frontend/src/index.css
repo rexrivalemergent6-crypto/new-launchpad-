@@ -298,6 +298,17 @@ body {
 @keyframes pz-pop { from { opacity: 0; } to { opacity: 1; } }
 .pz-pop { animation: pz-pop 0.28s ease-out; }
 
+/* dark input primitive (launch drawer etc.) */
+.nbb-in {
+  background: #16202E;
+  color: #E8EDF5;
+  border: 1.5px solid rgba(148, 163, 184, 0.22);
+  border-radius: 12px;
+  outline: none;
+}
+.nbb-in::placeholder { color: rgba(148, 163, 184, 0.5); }
+.nbb-in:focus { border-color: rgba(99, 230, 169, 0.55); box-shadow: 0 0 0 3px rgba(99, 230, 169, 0.15); }
+
 /* build page dark theme */
 .nbb-page { background: #0A0F16; color: #E8EDF5; }
 .nbb-pill {

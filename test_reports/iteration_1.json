@@ -1,0 +1,32 @@
+{
+  "summary": "Full first-pass test of CodePad (backend proxy + frontend UI). Backend: 14/14 pytest tests pass covering health, all /api/relay/* endpoints, /api/portal/launches (regression), /api/c/* proxied endpoints (launch/terms, coins/ticker, auth/nonce, compile) — none returning 500. Frontend: dark navy theme (#0A0F16) applied consistently across home, builder, explore, library, model, handbook, changelog, my coins, scoreboard, live, paid, stats, stocks, recipes, brand, embed, terms, flywheel, docs, updates, rules (18 routes checked). Sidebar nav matches the exact 7 items requested (Builder/Explore/Library/Model/Handbook/Changelog/My coins) + Deploy a coin CTA. Footer renders 4 columns (Platform/Build with/Handbook/Legal). Home ticker + flagship strip show live relayed data (real coins Fib/Grok Spammer/HARBOR, real trades). Builder auto-compile from /builder?q=... worked within ~1s producing blocky-node elements (>0 blocks). Launch drawer opens via Launch button and via ?launch=1 query (auto-open ✓). Ticker availability badge appears after fill+blur showing 'ticker free'. Connect wallet gate renders (did not sign — no Phantom). Explore 'All pad coins' tab shows live coins; clicking a card routes INTERNALLY to /c/<mint> (Fib → /c/FeadKda...vyZs) with stats, recent trades, rules tags, and 'Remix with Bolt' button. Zero console errors, zero external circuitdev.fun anchor links. One UI design bug: coin name input inside the Launch drawer renders with a bright white/cream background (inconsistent with dark theme and inconsistent with the ticker input next to it which is dark). One responsive bug: home page has horizontal overflow at 390px (scrollWidth 463 vs clientWidth 390); /builder and /explore are fine at 390.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Launch drawer / Coin name input", "issue": "Input has a bright white background on dark drawer — breaks dark theme and is inconsistent with the ticker input (which is dark). Visible on both desktop and mobile.", "selector": "[data-testid='launch-name-input']", "priority": "HIGH"},
+      {"component": "Home page (mobile 390px)", "issue": "Horizontal overflow — document.scrollWidth=463 > clientWidth=390. Likely a hero/ticker/section that is not wrapping or has fixed width. /builder and /explore are fine.", "selector": "body on /", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Launch drawer", "issues": ["Coin name field white bg vs ticker field dark bg → visually inconsistent. Both should use the same dark input treatment used elsewhere."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Fix Launch drawer coin-name input styling to match dark theme (same as ticker input).",
+    "Investigate home page horizontal overflow at 390px (likely LiveTicker/flagship/powers section)."
+  ],
+  "critical_code_review_comments": [
+    "Launch drawer uses two different input styles for name vs ticker — likely one has a stray `bg-white` or missing dark variant class. Centralize via shared Input primitive.",
+    "Explore coin cards are div-with-onClick instead of real <a href='/c/<mint>'>. Works but hurts accessibility, right-click open-in-new-tab, and SEO. Consider wrapping with a Link.",
+    "No stale/mock placeholder content detected — all data comes from relay. Good."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "100%", "frontend": "90%"},
+  "test_credentials": "None required — wallet signing not tested per request.",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend regression suite at /app/backend/tests/backend_test.py (pytest, 14 tests, all passing). To re-run: `pytest /app/backend/tests/backend_test.py -v --junitxml=/app/test_reports/pytest/pytest_results.xml`. Explore defaults to 'Launched via CodePad' empty state — click 'All pad coins' tab to see live coins. Coin cards are clickable divs (not <a>), so playwright should use text selectors (e.g., `page.query_selector('text=Fib')`) and then wait_for_url('**/c/**'). Launch drawer input testids: launch-name-input, launch-ticker-input, launch-drawer, ticker-availability. ?launch=1 query auto-opens drawer. Blocky canvas nodes have data-testid starting with 'blocky-node'. Remix auto-compile from /builder?q=... was fast (<2s in this run) but spec allows up to 20s.",
+  "rca of the issue": "Launch-drawer name input white bg: likely a hard-coded `bg-white` class or missing dark variant in the Input/TextField primitive used only for the name field. Reproduce: visit /builder?launch=1 → the first input in the drawer renders with rgb(255,255,255)-ish bg while the ticker input next to it is dark. Mitigation: inspect Builder.jsx launch-drawer JSX, apply the same classes used on launch-ticker-input to launch-name-input (likely `bg-transparent border border-nbb-line text-nbb-ink` or similar). Home mobile overflow: inspect LiveTicker/FlagshipStrip/PowersCards for min-width/fixed widths > 390px; add overflow-x-hidden on the hero container or min-w-0 flex items."
+}

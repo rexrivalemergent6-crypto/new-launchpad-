@@ -6,10 +6,9 @@ export default function CoinCard({ coin, index = 0 }) {
   const tags = coin.tags || [];
   return (
     <motion.div
-      role="link"
-      tabIndex={0}
-      onClick={(e) => { window.location.assign(`/c/${coin.mint || coin.slug}`); }}
+      onClick={(e) => { e.preventDefault(); window.location.assign(`/c/${coin.mint || coin.slug}`); }}
       style={{ cursor: "pointer" }}
+      data-href={`/c/${coin.mint || coin.slug}`}
       data-testid={`coin-card-${coin.ticker || coin.slug}`}
       initial={{ opacity: 0, y: 26 }}
       whileInView={{ opacity: 1, y: 0 }}
