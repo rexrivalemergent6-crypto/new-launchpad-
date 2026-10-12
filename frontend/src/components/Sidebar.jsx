@@ -93,13 +93,16 @@ function WalletBox() {
   );
 }
 
-function Panel({ onPick }) {
+function Panel({ onPick, xTestId = "header-x-link-desktop" }) {
   const { pathname } = useLocation();
   return (
     <div className="h-full flex flex-col px-4 pb-5 pt-6 overflow-y-auto">
-      <Link to="/" data-testid="nav-home" onClick={onPick} className="px-3 mb-8 shrink-0">
-        <Logo />
-      </Link>
+      <div className="flex items-center justify-between gap-2 px-3 mb-8 shrink-0">
+        <Link to="/" data-testid="nav-home" onClick={onPick} className="min-w-0">
+          <Logo />
+        </Link>
+        <HeaderX testid={xTestId} />
+      </div>
       <nav className="flex flex-col gap-0.5 flex-1">
         {NAV.map((n) => {
           const active = pathname === n.to;
@@ -149,6 +152,17 @@ function Panel({ onPick }) {
   );
 }
 
+const X_URL = "https://x.com/usecodepad";
+/** CodePad's X profile — shown in the header of every page */
+export function HeaderX({ testid, big = false }) {
+  return (
+    <a href={X_URL} target="_blank" rel="noopener noreferrer" aria-label="CodePad on X" title="CodePad on X · @usecodepad" data-testid={testid}
+      className={`${big ? "w-11 h-11 rounded-xl" : "w-9 h-9 rounded-lg"} shrink-0 border border-line bg-panel text-snow/85 hover:border-mint/40 hover:text-mint transition-colors grid place-items-center`}>
+      <XIcon size={big ? 16 : 14} />
+    </a>
+  );
+}
+
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
@@ -180,6 +194,7 @@ export default function Sidebar() {
             <Logo small />
           </Link>
           <div className="flex items-center gap-2">
+            <HeaderX testid="header-x-link-mobile" big />
             <button
               data-testid="menu-toggle-button"
               onClick={() => setOpen(!open)}
@@ -209,7 +224,7 @@ export default function Sidebar() {
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="lg:hidden fixed inset-y-0 right-0 w-[300px] z-50 bg-[#0B1018] border-l border-line"
             >
-              <Panel onPick={() => setOpen(false)} />
+              <Panel onPick={() => setOpen(false)} xTestId="header-x-link-drawer" />
             </motion.aside>
           </>
         )}

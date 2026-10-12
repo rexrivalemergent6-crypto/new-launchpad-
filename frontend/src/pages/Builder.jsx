@@ -6,7 +6,7 @@ import { cPost, cGet, relayGet, useExplore, useLibrary } from "@/lib/relay";
 import { useWallet } from "@/lib/walletStore";
 import { BlockPreview, colorOf, codeForDef, programToTree, countNodes, toPlainEnglish, toBlocks, renderProgram, strip, pushInto, containsNode, findNode, insertAfter, newNode } from "@/components/blockyKit";
 import CATALOG from "@/data/blockCatalog.json";
-import { CodePadMark } from "@/components/Sidebar";
+import { CodePadMark, HeaderX } from "@/components/Sidebar";
 import FamilyFlyout from "@/components/FamilyFlyout";
 import LaunchWizard from "@/components/LaunchWizard";
 import { TEMPLATE_NAME, makeTicker } from "@/lib/templates";
@@ -352,8 +352,9 @@ export default function Builder() {
               <span className="w-[26px] h-[26px] rounded-lg grid place-items-center shrink-0 hover:bg-white/5" data-testid="blocky-project-menu"><ChevronDown size={15} className="opacity-70" /></span>
             </button>
           )}
+          <span className="lg:hidden ml-auto"><HeaderX testid="header-x-link-builder" /></span>
           <button type="button" onClick={() => window.dispatchEvent(new Event("cpad:menu"))} aria-label="Menu" data-testid="builder-menu-button"
-            className="lg:hidden ml-auto w-9 h-9 rounded-xl border-2 border-white/15 bg-[#0E141D] grid place-items-center text-snow/80">
+            className="lg:hidden w-9 h-9 rounded-xl border-2 border-white/15 bg-[#0E141D] grid place-items-center text-snow/80">
             <Menu size={17} />
           </button>
         </div>

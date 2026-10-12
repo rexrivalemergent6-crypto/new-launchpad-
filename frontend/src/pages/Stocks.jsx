@@ -51,10 +51,10 @@ export default function Stocks() {
       </motion.div>
 
       <div className="mt-12" data-testid="stocks-grid">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-3">
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-1">
           {pricesError ? "live prices unavailable — showing the full token list" : `${tiles.length} tokenized stocks · prices relayed live`}
-        <div className="font-mono text-[10px] text-fog/50 mt-1">every stock the network offers — a coin's rules can hold any of them (up to 3 per coin)</div>
         </p>
+        <div className="font-mono text-[10px] text-fog/50 mb-3">every stock the network offers — a coin's rules can hold any of them (up to 3 per coin)</div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {tiles.map((s, i) => (
             <motion.div
