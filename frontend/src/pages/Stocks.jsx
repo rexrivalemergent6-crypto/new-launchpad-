@@ -3,6 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import CoinCard from "@/components/CoinCard";
 import { useOurLedger, useStocks } from "@/lib/relay";
+import { STOCKS } from "@/lib/quotes";
 
 const STOCK_RULE = "when the coin collects fees, put half into tokenized NVDA and buy my coin back with the rest";
 
@@ -19,12 +20,12 @@ export default function Stocks() {
   const { data: prices, isError: pricesError } = useStocks();
   const cards = ours.coins.filter((c) => c.card?.usesStocks);
 
-  // every symbol the relay sends (keys look like "TSLAx"); NAMES only labels known ones
-  const live = Object.entries(prices?.prices || {})
-    .map(([k, v]) => ({ sym: k.replace(/x$/, ""), price: v }));
-  const tiles = (live.length ? live : Object.keys(NAMES).map((sym) => ({ sym, price: null })))
-    .filter((s, i, a) => a.findIndex((x) => x.sym === s.sym) === i)
-    .sort((a, b) => a.sym.localeCompare(b.sym));
+  // the full quote list (every tokenized stock the network offers), priced live where the relay has it
+  const priceMap = prices?.prices || {};
+  const tiles = STOCKS.map((st) => ({
+    sym: st.symbol, name: st.name, mint: st.mint,
+    price: priceMap[`${st.symbol}x`] ?? priceMap[`${st.ticker}x`] ?? null,
+  })).sort((a, b) => a.sym.localeCompare(b.sym));
 
   return (
     <div className="max-w-[1240px] mx-auto px-6 lg:px-10 pt-28 lg:pt-14 pb-24">
@@ -51,7 +52,8 @@ export default function Stocks() {
 
       <div className="mt-12" data-testid="stocks-grid">
         <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-3">
-          {pricesError ? "live prices unavailable — showing the symbol list" : "live prices · relayed"}
+          {pricesError ? "live prices unavailable — showing the full token list" : `${tiles.length} tokenized stocks · prices relayed live`}
+        <div className="font-mono text-[10px] text-fog/50 mt-1">every stock the network offers — a coin's rules can hold any of them (up to 3 per coin)</div>
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {tiles.map((s, i) => (
@@ -70,7 +72,7 @@ export default function Stocks() {
                   {s.price != null ? `$${s.price >= 100 ? Math.round(s.price) : s.price.toFixed(2)}` : "—"}
                 </div>
               </div>
-              <div className="text-[12px] text-fog mt-0.5 truncate">{NAMES[s.sym] || s.sym}</div>
+              <div className="text-[12px] text-fog mt-0.5 truncate">{s.name}</div>
             </motion.div>
           ))}
         </div>

@@ -5,6 +5,7 @@ import { X as Close, Upload } from "lucide-react";
 import { Keypair, VersionedTransaction } from "@solana/web3.js";
 import { cGet, cPost, relayImg } from "@/lib/relay";
 import { signInWithWallet, signTransaction, walletStore } from "@/lib/walletStore";
+import { PUMP_MINT, STOCKS, quoteBySymbol } from "@/lib/quotes";
 import { uploadLogo, makeTicker } from "@/lib/templates";
 import { CodePadMark } from "@/components/Sidebar";
 import CATALOG from "@/data/blockCatalog.json";
@@ -56,6 +57,9 @@ export default function LaunchWizard({ open, onClose, wallet, session, name, set
   const [balance, setBalance] = useState(null);
   const [noMoneyOk, setNoMoneyOk] = useState(false);
   const [agree, setAgree] = useState(false);
+  const [pricedIn, setPricedIn] = useState("SOL");
+  const [stockSym, setStockSym] = useState("");
+  const [stockRisk, setStockRisk] = useState(false);
   const [showStockNote, setShowStockNote] = useState(true);
   const [touched, setTouched] = useState(false);
   const [running, setRunning] = useState(false);
@@ -105,6 +109,8 @@ export default function LaunchWizard({ open, onClose, wallet, session, name, set
     : !/^[A-Za-z0-9]{1,10}$/.test(sym) ? "The ticker can be 1-10 letters or numbers."
     : description.length > 500 ? "The description can be up to 500 characters."
     : twitter.trim() && !/^https:\/\/(x|twitter)\.com\/\S+$/i.test(twitter.trim()) ? "Use a full X link, like https://x.com/yourcoin."
+    : pricedIn === "STOCK" && !quoteBySymbol(stockSym) ? "Pick the tokenized stock your coin is priced in."
+    : pricedIn === "STOCK" && !stockRisk ? "Tick the box about the stock's risks."
     : null;
   const v3 = programErr || (!program ? "Writing your rules…" : null);
   const v4 = !agree ? "Tick the box to agree." : !moneyRule && !noMoneyOk ? "Confirm you want to launch a coin with no money rule." : null;
@@ -140,11 +146,15 @@ export default function LaunchWizard({ open, onClose, wallet, session, name, set
         devBuyLamports: "0", slug: kebab(sym || nm), program: prog,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         ...(!hasMoneyRule(prog) && noMoneyOk ? { noMoneyRuleOk: true } : {}),
-        ...(t?.quoteMint ? { quoteMint: t.quoteMint, creatorFeeBps: Math.max(0, Math.min(10000, Math.round(Number(t.creatorFeeBps) || 0))) } : {}),
+        ...(pricedIn === "PUMP" ? { quoteMint: PUMP_MINT, creatorFeeBps: 0 }
+          : pricedIn === "STOCK" ? { quoteMint: quoteBySymbol(stockSym)?.mint, creatorFeeBps: 0, stockQuoteRiskOk: true } : {}),
       };
       let tx;
       try { tx = await cPost(`projects/${pid}/launch`, body); } catch (e) { throw Error(`launch refused by the network: ${e.message}`); }
       if (!tx?.txBase64) throw Error(tx?.error || "the network sent no launch transaction — try again.");
+      if (body.quoteMint ? tx.quoteMint !== body.quoteMint : tx.quoteMint) {
+        throw Error("The pricing wasn't confirmed for this coin — pick SOL and try again, or wait a moment and retry.");
+      }
       say?.(`transaction ready — slug ${tx.slug || body.slug}`);
       setPhase("signing");
       const vtx = VersionedTransaction.deserialize(Uint8Array.from(atob(tx.txBase64), (c) => c.charCodeAt(0)));
@@ -246,10 +256,31 @@ export default function LaunchWizard({ open, onClose, wallet, session, name, set
                 <input value={twitter} onChange={(e) => setTwitter(e.target.value)} placeholder="https://x.com/yourcoin" data-testid="wizard-twitter" className={`${inp} mt-1.5`} />
                 <span className="block mt-1.5 text-[12px] text-fog">Shown on pump.fun with your coin. It can't be changed after launch.</span></label>
               <div><p className="font-bold text-[14px] mb-1.5">What is your coin priced in?</p>
-                <div className="inline-flex rounded-xl border-2 border-white/10 p-1 bg-[#0A0F16]" data-testid="wizard-quote">
-                  <span className="px-4 py-1.5 rounded-lg bg-mint text-[#0A0F16] font-bold text-[13px]">SOL</span>
-                  <span className="px-4 py-1.5 text-[13px] text-fog/60" title="coming to CodePad soon">PUMP · stock (soon)</span>
-                </div></div>
+                <div className="inline-flex flex-wrap rounded-xl border-2 border-white/10 p-1 bg-[#0A0F16]" data-testid="wizard-quote">
+                  {["SOL", "PUMP", "STOCK"].map((o) => (
+                    <button key={o} type="button" onClick={() => { setPricedIn(o); setTouched(false); }} data-testid={`quote-option-${o.toLowerCase()}`}
+                      className={`px-4 py-1.5 rounded-lg font-bold text-[13px] transition-colors ${pricedIn === o ? "bg-mint text-[#0A0F16]" : "text-fog hover:text-snow"}`}>
+                      {o === "STOCK" ? "A tokenized stock" : o}
+                    </button>
+                  ))}
+                </div>
+                {pricedIn === "SOL" && <p className="mt-1.5 text-[12px] text-fog">People buy and sell your coin with SOL. This is how every coin on CodePad has worked so far.</p>}
+                {pricedIn === "PUMP" && <p className="mt-1.5 text-[12px] text-fog">Your coin is priced in PUMP — the asset is picked from the network's own quote list, locked at launch.</p>}
+                {pricedIn === "STOCK" && (
+                  <div className="mt-2.5" data-testid="wizard-quote-stock">
+                    <select value={stockSym} onChange={(e) => { setStockSym(e.target.value); setStockRisk(false); }} data-testid="wizard-stock-select"
+                      className={`${inp} cursor-pointer`}>
+                      <option value="">pick the tokenized stock…</option>
+                      {STOCKS.map((st) => <option key={st.mint} value={st.symbol}>{st.name} ({st.symbol})</option>)}
+                    </select>
+                    {stockSym && (
+                      <label className="mt-2.5 flex gap-3 items-start rounded-2xl border-2 border-amber-400/40 bg-amber-400/10 p-3.5 cursor-pointer" data-testid="wizard-stock-risk">
+                        <input type="checkbox" checked={stockRisk} onChange={(e) => setStockRisk(e.target.checked)} className="mt-1 w-4 h-4 accent-[#E7C85F]" />
+                        <span className="text-[13px] text-amber-100">A tokenized stock is issued by its own issuer and can be paused by them — a paused stock means this coin cannot trade. I understand the risks.</span>
+                      </label>
+                    )}
+                  </div>
+                )}</div>
             </div>
           )}
           {step === 3 && (
@@ -298,6 +329,7 @@ export default function LaunchWizard({ open, onClose, wallet, session, name, set
                 : <button onClick={() => signInWithWallet().catch((e) => setErr(e.message))} data-testid="wizard-connect-5" className="rounded-xl bg-mint text-[#0A0F16] font-bold px-4 py-2.5 text-[14px]">Connect wallet</button>}
               <div className={box} data-testid="wizard-summary">
                 <Row k="Creates" v={`${nm} · $${sym}`} testid="summary-creates" />
+                <Row k="Priced in" v={pricedIn === "SOL" ? "SOL" : pricedIn === "PUMP" ? "PUMP" : `${quoteBySymbol(stockSym)?.name || stockSym} (${stockSym})`} />
                 <Row k="X link" v={twitter.trim() || "none"} />
                 <Row k="Website" v="Your coin's CodePad page (added automatically)" />
                 <Row k="Sends" v={seed != null ? `${seed} SOL to the coin's wallet` : "setup SOL to the coin's wallet"} />
