@@ -1,0 +1,32 @@
+PASS demo seeded on first visit  [6 blocks]
+PASS flyout tap-to-add (nothing selected)
+PASS flyout closes after add
+PASS tap arm then flyout block lands in that branch  [else 1->2]
+PASS long-press picks a block up (move banner)
+PASS tap an arm drops the held block into it  [burn in then 0->1]
+PASS move keeps block count  [8]
+PASS cancel drops nothing
+PASS slow hold stays held after release
+PASS tap + type into a block input
+PASS tap delete removes one block  [8->7]
+PASS 409 shows a bolt question (not a dead-end error)  [How much should each minute's payout be, and should it be SOL or your ]
+PASS answering builds a NEW program (demo replaced)  [['events_every_minutes', 'finance_airdrop']]
+PASS builder no page errors  [[]]
+PASS no horizontal overflow
+PASS ?remix=llama-3 loads the template program  [8 blocks, project 'Remix of Template']
+PASS remix is masked (project 'Remix of Template', no LLAMA)
+PASS remix banner shown
+PASS no demo seeded on remix
+PASS &launch=1 opens the launch wizard on step 1
+PASS launch prefilled: logo picture, name Template + made-up ticker  [name=Template ticker=TYAX]
+PASS blocks loaded behind the drawer
+PASS unknown remix slug handled gracefully  [That template isn't available any more — ask bolt to build s]
+PASS rules cards rendered  [17 cards]
+PASS no original coin names on cards  [[]]
+PASS every card has logo + Remix + Launch this
+PASS no <img> coin pictures in the grid
+PASS made-up ticker stable across reloads  [$TYAX]
+PASS Launch this -> builder with template + launch wizard  [/builder?remix=llama-3&launch=1]
+PASS rules no page errors  [[]]
+
+30/30 passed

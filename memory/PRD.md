@@ -45,3 +45,14 @@ Announcement bar (dismissable) → live trade ticker (relay /api/activity, inter
 ## Backlog
 - P1: value-pill DROP into input already fills text — next: wire reporter nodes as live references (upstream-style variable linking)
 - P2: watchlist, share cards, /docs anchor sections (receipts/vault/faq/launching) as separate blocks
+
+## Update 2026-10-12 (later rounds)
+- **5-step launch wizard** (LaunchWizard.jsx, upstream-exact): Step 1 Make your coin (signed-in pill/logout, lime stock notice, live cost paragraph, image = CodePad logo auto-uploaded via POST /api/c/images, changeable) → Step 2 Name/Ticker ($ prefix, live availability)/Description/X profile/priced-in **SOL | PUMP (EcZndAERfzNhLirHwfsy44dAyPSZazjDU83pa6RApump) | any of 69 tokenized stocks** (mints decoded from upstream quote table; stock risk checkbox gates Next) → Step 3 Check the rules (plain-english of the user's blocks) → Step 4 money (spending limits FROZEN, AI starter card, no-money-rule red checkbox + terms checkbox) → Step 5 Sign & launch. Launch body exact upstream: {userWallet, mint, name, symbol, description, imageUrl, twitter?, devBuyLamports:"0", slug, program, timezone, noMoneyRuleOk?, quoteMint?, creatorFeeBps?, stockQuoteRiskOk?} + response echo validation (QUOTE_NOT_CONFIRMED). Then co-sign → wallet sign → /send?mint=&slug= → /register → /status poll. (User's real 400 "launch details aren't valid" fixed — imageUrl+description+slug+timezone+devBuy were missing.)
+- **Explore = OUR ledger only** (no upstream coins, no toggle; honest empty state).
+- **No upstream platform stats as ours**: Flywheel honest (0 $CODEPAD torched — counter starts with our own coin; no 6.6M), flagship strip/loop teaser/StatStrip/live ticker use our ledger only.
+- **All 69 tokenized stocks** on /stocks (quotes.js table + live prices where relayed) + ledger-only "coins stacking shares".
+- **Dark block skin everywhere**: rail = dark family tints + bright borders (active = solid family + glow), canvas/palette/flyout dark tints + bright family borders + light text; white oval inputs kept.
+- **X link https://x.com/usecodepad in every header** (desktop sidebar top, mobile bar, builder row, menu drawer; header-x-link-* testids).
+- Home hero: big mint "Pick a blueprint" button (hero-blueprint-button) above Ask Bolt — the highlight; goes to /recipes.
+- Builder mobile parity: 44px controls, 84px rail, family flyout, per-session demo program (upstream-identical: events_button Go → variables_change clicks → control_if_else → world_update_feed), long-press pick-up/tap-to-drop on touch, ideas dropdown, /builder?remix=<slug>&launch=1 template loading (GET /api/p/<slug>?receipts=1 fallback to /api/relay/rules), masked "Template" cards with CodePad logo + made-up tickers on /rules.
+- Test reports: iteration_1..6 all 100% (6 = header X + p/div fix).
