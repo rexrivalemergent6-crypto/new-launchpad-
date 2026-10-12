@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { ArrowUpRight, X, Sparkles, Rocket, KeyRound, Play, Code2, StickyNote, Pencil, ChevronDown, Layers, Bot } from "lucide-react";
 import { cPost, aiPassword, useExplore, useLibrary } from "@/lib/relay";
 import { useWallet, signInWithWallet } from "@/lib/walletStore";
-import { BlockRow, flattenTree, pushInto, strip, containsNode, findNode, countNodes, toPlainEnglish, toBlocks, CompiledBlock, colorOf, programToTree } from "@/components/blockyKit";
+import { renderProgram, BlockPreview, newNode, isHat, isBranch, branchesOf, slotKeyFor, codeForDef, pushInto, insertAfter, strip, containsNode, findNode, countNodes, toPlainEnglish, toBlocks, CompiledBlock, colorOf, programToTree } from "@/components/blockyKit";
+import CATALOG from "@/data/blockCatalog.json";
 
 const EASE = [0.16, 1, 0.3, 1];
 let nextId = 1000;
@@ -24,6 +25,7 @@ export default function Builder() {
   const [runOpen, setRunOpen] = useState(false);
   const [tree, setTree] = useState([]);
   const [sel, setSel] = useState(null);
+  const [over, setOver] = useState(null);
   const [selFamily, setSelFamily] = useState("EV");
 
   const [sentence, setSentence] = useState(params.get("q") || "");
@@ -47,58 +49,73 @@ export default function Builder() {
     if (q) setSentence(q);
   }, [params]);
 
-  const families = lib?.families || [];
-  const blocks = lib?.blocks || [];
-  const kindFor = useMemo(() => Object.fromEntries((families || []).map((f) => [f.name.toUpperCase(), f.code])), [families]);
-  const palette = useMemo(() => blocks.filter((b) => kindFor[b.kind] === selFamily), [blocks, kindFor, selFamily]);
+  // live catalog through the relay, saved copy as fallback; family = the block's category code
+  const families = lib?.categories?.length ? lib.categories : CATALOG.categories;
+  const blocks = lib?.blocks?.length ? lib.blocks : CATALOG.blocks;
+  const palette = useMemo(() => blocks.filter((b) => codeForDef(b) === selFamily), [blocks, selFamily]);
 
   const say = (line) => setLog((l) => [...l.slice(-5), line]);
 
-  const addByType = (type) => {
-    const def = blocks.find((b) => b.type === type);
-    if (!def) return;
-    addFromPalette(def);
+  const makeNode = (def) => newNode(def, nextId++);
+
+  /** where palette clicks go: the selected slot, else under the last hat on the canvas, else the root */
+  const defaultTarget = (t) => {
+    const last = t[t.length - 1];
+    return last && isHat(last.def) ? { parentId: last.id, branch: "in" } : { parentId: null, branch: null };
   };
 
-  const handleDropInto = (targetNode, text) => {
+  const placeNew = (def, target) => {
+    const node = makeNode(def);
+    setTree((t) => {
+      if (isHat(def)) return [...t, node];
+      if (target.mode === "after") return insertAfter(t, target.node.id, node);
+      if (target.mode === "root") return [...t, node];
+      if (target.mode === "into") return pushInto(t, target.node.id, target.branch || slotKeyFor(target.node.def), node, isHat(target.node.def) || target.atStart);
+      const tg = target.parentId !== undefined ? target : defaultTarget(t);
+      return pushInto(t, tg.parentId, tg.branch, node);
+    });
+    if (isBranch(def)) setSel({ parentId: node.id, branch: branchesOf(def)[0].key });
+    else if (isHat(def)) setSel(null);
+    return node;
+  };
+
+  const addFromPalette = (def) => {
+    placeNew(def, sel ? { parentId: sel.parentId, branch: sel.branch } : {});
+    say(`snapped: ${def.label}`);
+  };
+
+  /** drop from the palette ("new:<type>") or a moved block ("move:<id>") onto a target */
+  const handleDrop = (target, text) => {
     if (!text) return;
-    const [kind, _, val] = [text.split(":")[0], null, text.split(":").slice(1).join(":")];
+    const kind = text.split(":")[0];
+    const val = text.split(":").slice(1).join(":");
     if (kind === "new") {
       const def = blocks.find((b) => b.type === val);
       if (!def) return;
-      setTree((t) => pushInto(t, targetNode.id, /^if /.test(targetNode.def?.label || "") ? "then" : "in", { id: nextId++, def, kindCode: kindFor[def.kind] || "MO", vals: {}, children: {} }));
-      say(`dropped into: ${targetNode.def?.label || ""}`);
+      placeNew(def, target);
+      say(target.node ? `snapped ${def.label} ${target.mode === "after" ? "under" : "into"}: ${target.node.def?.label || ""}` : `placed: ${def.label}`);
     } else if (kind === "move") {
-      const movingId = val;
-      if (movingId === targetNode.id || containsNode(tree, movingId, targetNode.id)) return;
-      const moving = findNode(tree, movingId);
+      const moving = findNode(tree, val) || findNode(tree, Number(val));
       if (!moving) return;
-      setTree((t) => pushInto(strip(t, movingId), targetNode.id, /^if /.test(targetNode.def?.label || "") ? "then" : "in", moving));
-      say(`moved into: ${targetNode.def?.label || ""}`);
+      const mid = moving.id;
+      if (target.node && (mid === target.node.id || containsNode(tree, mid, target.node.id))) return;
+      setTree((t) => {
+        const rest = strip(t, mid);
+        if (!target.node || isHat(moving.def)) return [...rest, moving];
+        if (target.mode === "after") return insertAfter(rest, target.node.id, moving);
+        return pushInto(rest, target.node.id, target.branch || slotKeyFor(target.node.def), moving, isHat(target.node.def));
+      });
+      say(target.node ? `moved into: ${target.node.def?.label || ""}` : "moved to the top level");
     }
   };
 
   const handleRootDrop = (e) => {
     e.preventDefault();
-    const text = e.dataTransfer.getData("text/plain");
-    if (!text) return;
-    const [kind, _, val] = [text.split(":")[0], null, text.split(":").slice(1).join(":")];
-    if (kind === "new") {
-      addByType(val);
-    } else if (kind === "move") {
-      const moving = findNode(tree, val);
-      if (!moving) return;
-      setTree((t) => [...strip(t, val), moving]);
-      say("moved to the top level");
-    }
+    setOver(null);
+    handleDrop({ mode: "root" }, e.dataTransfer.getData("text/plain"));
   };
 
-  const addFromPalette = (def) => {
-    const node = { id: nextId++, def, kindCode: kindFor[def.kind] || "MO", vals: {}, children: {} };
-    setTree((t) => pushInto(t, sel ? sel.parentId : null, sel ? sel.branch : "in", node));
-    setSel(null);
-    say(`snapped: ${def.label}`);
-  };
+  const ctx = { tree, setTree, sel, setSel, over, setOver, onDrop: handleDrop };
 
   const blockCount = compiled ? toBlocks(compiled).length : countNodes(tree);
 
@@ -275,7 +292,8 @@ export default function Builder() {
 
       {/* workspace */}
       <div className="mt-4 border border-line rounded-3xl bg-[#0C1219] overflow-hidden dotgrid" data-testid="blocky-workspace">
-        <div className="flex min-h-[560px] max-h-[70vh]">
+        <div className="flex flex-col md:flex-row md:h-[70vh] md:min-h-[560px]">
+          <div className="flex flex-1 min-w-0 h-[62vh] min-h-[420px] md:h-auto">
           <div className="w-14 shrink-0 border-r border-line bg-panel/70 flex flex-col items-center gap-1.5 py-3 overflow-y-auto" data-testid="blocky-rail">
             {(families.length ? families : [{ code: "EV" }, { code: "LG" }, { code: "FN" }]).map((f) => (
               <button key={f.code} onClick={() => setSelFamily(f.code)} data-testid={`rail-${f.code}`} title={f.name}
@@ -286,7 +304,7 @@ export default function Builder() {
             ))}
           </div>
 
-          <div className="flex-1 p-5 sm:p-7 min-w-0 overflow-y-auto">
+          <div className="flex-1 p-4 sm:p-7 min-w-0 overflow-auto" data-testid="blocky-canvas-scroll">
             {showCode ? (
               <pre className="font-mono text-[11px] text-mint/90 whitespace-pre-wrap break-all" data-testid="blocky-json">
                 {rawProgram ? JSON.stringify(rawProgram, null, 2) : JSON.stringify(tree.map(({ def, vals }) => ({ type: def?.type, vals })), null, 2)}
@@ -299,31 +317,36 @@ export default function Builder() {
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col gap-3 min-h-[420px]" data-testid="blocky-canvas"
+              <div className="flex flex-col items-start gap-7 min-h-[420px] pb-10" data-testid="blocky-canvas"
                 onDragOver={(e) => e.preventDefault()}
+                onDragLeave={(e) => { if (e.currentTarget === e.target) setOver(null); }}
+                onClick={() => setSel(null)}
                 onDrop={handleRootDrop}>
-                {flattenTree(tree).map(({ node, depth, branchOf }) => (
-                  <BlockRow key={node.id} node={node} depth={depth} branchOf={branchOf} tree={tree} setTree={setTree} sel={sel} setSel={setSel} onDropInto={handleDropInto} />
-                ))}
+                {renderProgram(tree, ctx)}
                 {!tree.length && (
                   <p className="text-fog font-mono text-sm py-20 text-center">pick a family on the rail and snap your first block — or ask bolt above</p>
                 )}
               </div>
             )}
           </div>
+          </div>
 
-          <div className="hidden md:flex w-72 shrink-0 border-l border-line bg-panel/70 flex-col p-4 overflow-y-auto" data-testid="blocky-palette">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-3 flex items-center gap-2">
+          <div className="flex w-full md:w-72 shrink-0 border-t md:border-t-0 md:border-l border-line bg-panel flex-col p-4 max-h-[320px] md:max-h-none overflow-y-auto" data-testid="blocky-palette">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-1 flex items-center gap-2">
               <Layers size={12} className="text-mint" /> {selFamily} blocks · relayed
             </p>
-            <div className="space-y-2">
+            <p className="font-mono text-[9.5px] text-fog/60 mb-4">
+              {sel ? "tap a block — it snaps into the glowing slot" : "tap to snap under your event · or drag onto a block"}
+            </p>
+            <div className="flex flex-col gap-4">
               {palette.map((b) => (
-                <button key={b.type} onClick={() => addFromPalette(b)} draggable
+                <button key={b.type} type="button" onClick={() => addFromPalette(b)} draggable
                   onDragStart={(e) => { e.dataTransfer.setData("text/plain", "new:" + b.type); e.dataTransfer.effectAllowed = "copy"; }}
-                  data-testid={`palette-${b.type}`}
-                  className="w-full text-left border border-line rounded-xl px-3 py-2.5 hover:border-mint/50 transition-colors cursor-grab active:cursor-grabbing" style={{ borderLeft: `3px solid ${colorOf(kindFor[b.kind])}` }}>
-                  <div className="font-mono text-[11px] text-snow/85 leading-snug">{b.label}</div>
-                  <div className="font-mono text-[9px] text-fog mt-1 line-clamp-1">{b.tooltip}</div>
+                  onDragEnd={() => setOver(null)}
+                  data-testid={`palette-${b.type}`} title={b.tooltip}
+                  className="group w-full text-left cursor-grab active:cursor-grabbing hover:brightness-110 transition-[filter]">
+                  <BlockPreview def={b} code={codeForDef(b)} />
+                  <div className="font-mono text-[9px] text-fog/70 mt-2 line-clamp-1 group-hover:text-fog">{b.tooltip}</div>
                 </button>
               ))}
               {!palette.length && <p className="font-mono text-[11px] text-fog/60">loading the catalog…</p>}

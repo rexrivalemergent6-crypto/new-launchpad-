@@ -154,3 +154,137 @@ body {
     mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
     -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
 }
+
+/* ------- puzzle blocks: builder canvas (solid bodies, hat dome, C-frames, notch + tab) ------- */
+.pz {
+    --c: #D9A33C;
+    --edge: rgba(0, 0, 0, 0.32);
+    --hole: #0C1219;
+    --arm: 22px;
+    --nx: 16px;            /* connector x offset from the block's left edge */
+    position: relative;
+    max-width: 100%;
+}
+@media (min-width: 640px) { .pz { --arm: 40px; --nx: 18px; } }
+
+.pz-body {
+    position: relative;
+    background: var(--c);
+    color: #0A0F16;
+    border: 1.5px solid var(--edge);
+    border-radius: 10px;
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+/* bottom connector tab — hangs into the notch of the block below */
+.pz-tab::after {
+    content: "";
+    position: absolute;
+    left: var(--nx);
+    bottom: -9px;
+    width: 28px;
+    height: 10.5px;
+    background: var(--c);
+    clip-path: polygon(0 0, 100% 0, 76% 100%, 24% 100%);
+    z-index: 3;
+    pointer-events: none;
+}
+.pz-tab-arm::after { left: calc(var(--arm) + var(--nx)); }
+/* top notch — a cut in the top edge; covered by the tab of the block above */
+.pz-notch::before {
+    content: "";
+    position: absolute;
+    left: var(--nx);
+    top: -1.5px;
+    width: 28px;
+    height: 9px;
+    background: var(--hole);
+    clip-path: polygon(0 0, 100% 0, 76% 100%, 24% 100%);
+    z-index: 2;
+    pointer-events: none;
+}
+/* hat: rounded dome on top-left */
+.pz-hat { margin-top: 15px; border-top-left-radius: 4px; }
+.pz-hat::before {
+    content: "";
+    position: absolute;
+    left: -1.5px;
+    top: -15px;
+    width: 104px;
+    height: 17px;
+    background: var(--c);
+    border: 1.5px solid var(--edge);
+    border-bottom: none;
+    border-radius: 52px 52px 0 0 / 17px 17px 0 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    pointer-events: none;
+}
+.pz-reporter { border-radius: 999px; }
+.pz-boolean {
+    border-radius: 0;
+    border: none;
+    clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0 50%);
+}
+/* C-frame pieces */
+.pz-head { border-bottom-left-radius: 0; }
+.pz-mid { border-radius: 0 10px 10px 0; min-height: 26px; }
+.pz-foot { border-top-left-radius: 0; height: 18px; }
+.pz-arm {
+    position: relative;
+    z-index: 1;
+    width: var(--arm);
+    flex-shrink: 0;
+    margin: -1.5px 0;
+    background: var(--c);
+    border-left: 1.5px solid var(--edge);
+    border-right: 1.5px solid var(--edge);
+}
+.pz-inner { padding: 9px 0 9px 0; min-width: 0; }
+/* inputs on a block body */
+.pz-in {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    max-width: min(260px, 100%);
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(10, 15, 22, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.45);
+    color: #E8EDF5;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    outline: none;
+}
+.pz-in:focus { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55); }
+.pz-in-bool { border-radius: 4px; clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0 50%); padding: 0 14px; }
+.pz-tag {
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.38);
+    background: rgba(255, 255, 255, 0.18);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: rgba(10, 15, 22, 0.78);
+}
+.pz-over { outline: 2px solid #4ADE80; outline-offset: 3px; border-radius: 10px; }
+.pz-empty {
+    height: 34px;
+    min-width: 120px;
+    border-radius: 9px;
+    border: 1.5px dashed rgba(148, 163, 184, 0.25);
+    background: rgba(10, 15, 22, 0.55);
+}
+.pz-ghost {
+    height: 26px;
+    min-width: 150px;
+    border-radius: 9px;
+    border: 1.5px dashed rgba(74, 222, 128, 0.7);
+    background: rgba(74, 222, 128, 0.08);
+    box-shadow: 0 0 18px rgba(74, 222, 128, 0.18);
+}
+@keyframes pz-pop { from { opacity: 0; } to { opacity: 1; } }
+.pz-pop { animation: pz-pop 0.28s ease-out; }

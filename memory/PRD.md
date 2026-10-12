@@ -77,3 +77,11 @@
   - Container blocks (hat/if) are drop targets — dropping inside nests the block (flat renderer, no recursion).
   - Existing canvas blocks can be dragged to move (root or into containers), with a descendant-cycle guard (containsNode/findNode helpers).
 - Verified live with Playwright mouse drag: palette → root created node 1; palette → slot nested node 2 with "IN" label; log lines recorded each drop.
+
+## True blocky visuals (2026-10-12, round 8)
+- Rebuilt the renderer (recursive plain functions renderProgram/renderStack/renderFrame — compiles clean, no babel recursion crash): solid family-colored block bodies with dark text + mono field pills, dome-top hat blocks, top notch + bottom tab connectors, value pills + hexagon booleans.
+- Real C-frames: if/else, repeat, for-each, chance, parallel, switch — header + colored side arm per branch (then/do/else, sideways on mobile) + divider + foot; children nest INSIDE the frame.
+- Fixed palette bug: matched blocks by category not kind — all 15 families now have blocks (LG 11, FN 16, WD 13, ST 7, CT 7...), palette items render as miniature blocks; palette visible on mobile below canvas.
+- Drag targets upgraded: drop on event = stack under; drop on C-frame header = first branch; drop on block = insert after (Scratch-style); Ask Bolt programs now map onto REAL catalog blocks with correct colors and filled values.
+- Verified: 1440px + 390px (3-deep nesting, no horizontal scroll), drag/drop/move/delete, Ask Bolt, code view, Run/Launch, home + explore unaffected.
+- Remaining niceties: value pills can't yet be dropped into input slots; drag must start on label/tag, not on an input.
