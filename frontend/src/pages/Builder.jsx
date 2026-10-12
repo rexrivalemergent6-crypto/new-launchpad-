@@ -10,10 +10,13 @@ import { BlockPreview, colorOf, codeForDef, programToTree, countNodes, toPlainEn
 const EASE = [0.16, 1, 0.3, 1];
 let nextId = 1000;
 
-const SUGGESTIONS = [
+const IDEAS = [
   "tip the day's biggest buyer 10% of the pot",
   "burn a little supply on every buy over 0.1 SOL",
   "make a mascot for every 100 holders",
+  "when the pot crosses 2 SOL, stack tokenized TSLA with half and gift the rest",
+  "if the chart doubles in a day, buy back 5% of everything",
+  "once an hour, one random holder scoops 15% of the pot",
 ];
 
 export default function Builder() {
@@ -357,6 +360,7 @@ export default function Builder() {
         <div className="nbb-rail w-14 sm:w-16 shrink-0 flex flex-col items-center gap-2.5 py-4 overflow-y-auto" data-testid="blocky-rail">
           {(families.length ? families : [{ code: "EV" }, { code: "LG" }, { code: "DT" }, { code: "FN" }]).map((f) => (
             <button key={f.code} onClick={() => setSelFamily(f.code)} data-testid={`rail-${f.code}`} title={f.name}
+              style={{ "--c": colorOf(f.code) }}
               className={`nbb-rail-btn w-9 h-9 sm:w-11 sm:h-11 text-[10px] sm:text-[11px] shrink-0 ${selFamily === f.code ? "active" : ""}`}>
               {f.code}
             </button>
@@ -384,13 +388,17 @@ export default function Builder() {
                 {compiling ? <Sparkles size={22} className="animate-spin" /> : "↑"}
               </button>
             </div>
-            <div className="mt-3 flex flex-wrap gap-2.5" data-testid="blocky-suggestions">
-              {SUGGESTIONS.map((s, i) => (
-                <button key={i} data-testid={`suggestion-${i}`} onClick={() => setSentence(s)}
-                  className="nbb-pill px-5 py-2.5 font-semibold text-[15px] hover:border-mint/40 transition-colors">
-                  {s}
-                </button>
-              ))}
+            <div className="mt-3 flex flex-wrap items-center gap-2.5" data-testid="blocky-suggestions">
+              <select
+                value=""
+                onChange={(e) => { if (e.target.value) setSentence(e.target.value); }}
+                data-testid="builder-ideas-dropdown"
+                className="nbb-in !h-11 !rounded-xl pl-4 pr-9 font-semibold text-[14px] cursor-pointer appearance-none max-w-full"
+                style={{ backgroundImage: "linear-gradient(45deg, transparent 50%, #63E6A9 50%), linear-gradient(135deg, #63E6A9 50%, transparent 50%)", backgroundPosition: "calc(100% - 18px) 55%, calc(100% - 13px) 55%", backgroundSize: "5px 5px", backgroundRepeat: "no-repeat" }}
+              >
+                <option value="">try an idea</option>
+                {IDEAS.map((s, i) => <option key={i} value={s}>{s}</option>)}
+              </select>
             </div>
             {compileError && (
               <div className="mt-3 nbb-pill p-4 font-mono text-[12px] font-semibold text-red-300" style={{ background: "rgba(248,113,113,0.12)" }} data-testid="compile-error">
@@ -464,6 +472,16 @@ export default function Builder() {
       {/* mobile palette strip */}
       <div className="lg:hidden border-t border-line px-4 py-5 overflow-x-auto" style={{ background: "#0A0F16" }} data-testid="blocky-palette-mobile">
         <div className="flex flex-col items-start gap-4">
+          <div className="flex items-center gap-3.5 w-full" data-testid="blocky-family-head-mobile">
+            <span className="w-12 h-12 rounded-xl border-2 border-black/50 flex items-center justify-center font-mono font-extrabold text-sm shadow-[3px_3px_0_rgba(0,0,0,0.35)]"
+              style={{ background: colorOf(selFamily), color: "#0A0F16" }}>
+              {selFamily}
+            </span>
+            <div className="min-w-0">
+              <h2 className="font-extrabold text-2xl leading-none">{fam.name}</h2>
+              <p className="text-[13px] text-fog mt-1">{fam.desc}</p>
+            </div>
+          </div>
           <p className="font-mono text-[11px] font-bold tracking-[0.14em] text-snow/55">{fam.name.toUpperCase()} — CLICK TO ADD</p>
           <div className="flex items-start gap-4 flex-wrap">
             {palette.map((b) => (
