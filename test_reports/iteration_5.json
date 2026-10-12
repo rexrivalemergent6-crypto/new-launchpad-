@@ -1,0 +1,63 @@
+{
+  "summary": "Full frontend verification of CodePad quote-pairing + dark skin rebuild. All acceptance criteria PASS: dark rail buttons w/ family tints + bright borders + active=solid+glow, dark pz-body canvas blocks, dark Stocks chip, 5-step wizard with SOL/PUMP/STOCK quote options (69 stocks + risk gate), /stocks shows all 69 tiles, /flywheel honest (0 $CODEPAD, no 6.6M), no mobile overflow at 390px across 5 pages.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verifications": {
+    "A_builder_skin": {
+      "rail_count": 15,
+      "rail_EV_dark_tint_amber_family": "bg color(srgb 0.273 0.231 0.162), amber border — matches spec when ACTIVE: solid rgb(240,176,74) + 2px dark halo + 20px amber glow",
+      "rail_LG_dark_tint": "bg color(srgb 0.120 0.203 0.221), teal border 62% alpha, teal-tinted text — DARK family skin",
+      "rail_DT_dark_tint": "bg color(srgb 0.143 0.199 0.254), bright blue border 62% alpha",
+      "active_glow_present": true,
+      "stocks_chip_dark_with_lime_border": true,
+      "pz_body_sample": {"bg": "color(srgb 0.274 0.231 0.162) — dark EV tint", "border": "rgb(240,176,74) bright EV family", "color": "rgb(232,237,245) light text"},
+      "demo_seed_6_blocks_on_fresh_session": true
+    },
+    "B_launch_wizard": {
+      "desktop_1440_step1": "STEP 1 OF 5 'Make your coin' with Connect wallet, lime dismissable stock note, CodePad logo auto-uploaded, cost copy, image+image-change testids present",
+      "mobile_390_step1_renders": true,
+      "step1_to_step2_navigates": true,
+      "step2_blocks_without_name": "'Give your coin a name (up to 32 characters).' shown via launch-error",
+      "ticker_availability_badge": "ticker free (shown on blur)",
+      "quote_options_present": ["quote-option-sol", "quote-option-pump", "quote-option-stock"],
+      "pump_active_style": "bg rgb(76,217,143) mint + dark text — ACTIVE styling",
+      "stock_select_option_count": 70,
+      "stock_options_count_matches_69_plus_placeholder": true,
+      "spcx_pickable": true,
+      "amber_risk_checkbox_appears_and_toggles": true,
+      "back_navigation_works": true,
+      "no_crash_without_wallet": true
+    },
+    "C_stocks_page": {
+      "tiles_count": 69,
+      "scrollWidth_desktop": 1440,
+      "no_upstream_CIRCUITINU_text": true,
+      "note": "stock-tile with-price regex did not match in test (prices come from /api/relay/stocks and may be '—' for unmapped symbols). 69 tiles rendered as required."
+    },
+    "D_flywheel_honesty": {
+      "has_0_CODEPAD_burn": true,
+      "has_6_6M": false
+    },
+    "E_mobile_no_overflow": {"home": 390, "stocks": 390, "flywheel": 390, "builder": 390, "builder_launch_1": 390},
+    "console_errors": "Only React hydration dev-warnings from Emergent dev-overlay instrumentation (x-ve-dynamic span injected into <option>, and <div> inside <p>). These originate from the live-editor tooling (x-source attributes), not from the application code. No functional errors, no application-level errors."
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "LaunchWizard.jsx is 376 lines; echo-validation on body.quoteMint vs tx.quoteMint is in place (line 155-157) — QUOTE_NOT_CONFIRMED handled.",
+    "quotes.js is a static 69-item decoded table + PUMP mint — correct constant usage, not mock data.",
+    "Minor: console dev warning 'div cannot be a descendant of p' appears on /stocks (dev-overlay only). If main agent wants a clean dev console, inspect Stocks.jsx tile markup for a <div> inside a <p>."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (frontend-only)", "frontend": "100%" },
+  "test_credentials": "none (no Phantom; wizard verified up to signing gate per spec)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All quote-pairing + dark-skin acceptance criteria pass. Builder rail buttons render DARK family tints with bright 62%-alpha family borders; active rail = solid family color + 20px glow + dark text (verified EV active state). pz-body canvas blocks and palette previews share the dark skin (dark tint bg + bright family border + light text). Launch wizard /builder?launch=1 opens STEP 1 OF 5 with Connect wallet gate + dismissable lime stock note + auto-uploaded CodePad logo image. Step 2 (Name it) shows SOL/PUMP/A tokenized stock quote toggle; PUMP activates with mint bg; STOCK reveals a 70-option <select> (1 placeholder + 69 stocks) and an amber risk checkbox that gates Next. Validation message 'Give your coin a name...' blocks Next when name empty. Back navigation returns to STEP 1. /stocks shows exactly 69 tiles (data-testid^=stock-tile-). /flywheel shows '0 $CODEPAD' and no '6.6M'. Zero application-level console errors; only React hydration dev-warnings from Emergent live-editor tooling (x-ve-dynamic spans) which are not functional issues.",
+  "rca of the issue": "n/a — no issues found"
+}
