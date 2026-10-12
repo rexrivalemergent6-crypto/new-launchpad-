@@ -357,12 +357,12 @@ export default function Builder() {
       {/* workspace: rail + ask/canvas + palette */}
       <div className="border-y border-line flex min-h-[calc(100vh-218px)]" data-testid="blocky-workspace">
         {/* family rail */}
-        <div className="nbb-rail w-14 sm:w-16 shrink-0 flex flex-col items-center gap-2.5 py-4 overflow-y-auto" data-testid="blocky-rail">
+        <div className="nbb-rail w-[72px] sm:w-20 shrink-0 flex flex-col items-center gap-3 py-4 overflow-y-auto" data-testid="blocky-rail">
           {(families.length ? families : [{ code: "EV" }, { code: "LG" }, { code: "DT" }, { code: "FN" }]).map((f) => (
             <button key={f.code} onClick={() => setSelFamily(f.code)} data-testid={`rail-${f.code}`} title={f.name}
               style={{ "--c": colorOf(f.code) }}
-              className={`nbb-rail-btn w-9 h-9 sm:w-11 sm:h-11 text-[10px] sm:text-[11px] shrink-0 ${selFamily === f.code ? "active" : ""}`}>
-              {f.code}
+              className={`nbb-rail-btn ${selFamily === f.code ? "active" : ""}`}>
+              <span className="rail-inner">{f.code}</span>
             </button>
           ))}
         </div>

@@ -327,14 +327,30 @@ body {
   border-right: 1.5px solid rgba(148, 163, 184, 0.14);
 }
 .nbb-rail-btn {
-  border: 2.5px solid rgba(0, 0, 0, 0.55);
-  border-radius: 12px;
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(0, 0, 0, 0.55);
+  border-radius: 15px;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.42);
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
+  font-size: 12px;
   color: #0A0F16;
   background: var(--c);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
 }
-.nbb-rail-btn.active { background: #ffffff; box-shadow: 0 0 0 3px #0A0F16, 0 0 0 5px rgba(99, 230, 169, 0.55); }
+.nbb-rail-btn:active { transform: scale(0.94); }
+.nbb-rail-btn .rail-inner { display: grid; place-items: center; }
+.nbb-rail-btn.active { background: #ffffff; }
+.nbb-rail-btn.active .rail-inner {
+  width: 30px;
+  height: 30px;
+  background: var(--c);
+  border: 2.5px solid rgba(0, 0, 0, 0.55);
+  border-radius: 10px;
+}
 .nbb-family-head { border-bottom: 1.5px solid rgba(148, 163, 184, 0.14); }
 .nbb-banner { background: #12261E; border-bottom: 1.5px solid rgba(148, 163, 184, 0.14); }
