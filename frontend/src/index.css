@@ -327,8 +327,8 @@ body {
   border-right: 1.5px solid rgba(148, 163, 184, 0.14);
 }
 .nbb-rail-btn {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 46px;
   border: 3px solid rgba(0, 0, 0, 0.55);
   border-radius: 15px;
   box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.42);
@@ -354,3 +354,26 @@ body {
 }
 .nbb-family-head { border-bottom: 1.5px solid rgba(148, 163, 184, 0.14); }
 .nbb-banner { background: #12261E; border-bottom: 1.5px solid rgba(148, 163, 184, 0.14); }
+
+/* ---- builder: mobile parity with the upstream build page (390px) ---- */
+.nbb-ctl {               /* 44px control pill: colored elements get a dark neo-brutal edge + hard shadow */
+  height: 44px;
+  border: 3px solid rgba(0, 0, 0, 0.55);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.42);
+  font-weight: 800;
+  transition: transform 0.12s ease;
+}
+.nbb-ctl:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.42); }
+.nbb-ctl-dark {
+  background: #0E141D;
+  border: 2px solid rgba(148, 163, 184, 0.22);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.42);
+}
+.nbb-divider { border-top: 3px solid rgba(148, 163, 184, 0.16); }
+.nbb-rail-col { border-right: 3px solid rgba(148, 163, 184, 0.16); }
+.nbb-flyout { background: #0A0F16; border-right: 3px solid rgba(148, 163, 184, 0.16); }
+.nbb-flyout-head { height: 140px; border-bottom: 3px solid rgba(148, 163, 184, 0.16); }
+@keyframes nbb-pop-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+.nbb-pop-in { animation: nbb-pop-in 0.18s ease-out; }
+.pz input.pz-in { max-width: 100%; min-width: 0; text-overflow: ellipsis; }

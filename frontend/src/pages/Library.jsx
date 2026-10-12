@@ -323,7 +323,7 @@ export default function Library() {
 
       <div ref={gridRef} className="mt-10 flex flex-col gap-14" data-testid="library-grid">
         {visible.map((g) => (
-          <Section key={`${view}-${g.key}`} {...g} testid={`library-section-${g.key.toLowerCase()}`} codeFor={view === "family" ? codeFor : () => g.code} moduleNames={view === "family" ? moduleNames : {}} />
+          <Section key={`${view}-${g.key}`} {...(({ key, ...rest }) => rest)(g)} groupKey={g.key} testid={`library-section-${g.key.toLowerCase()}`} codeFor={view === "family" ? codeFor : () => g.code} moduleNames={view === "family" ? moduleNames : {}} />
         ))}
         {!visible.length && (
           <div className="border border-line rounded-2xl bg-panel p-10 text-center text-fog" data-testid="library-empty">

@@ -196,3 +196,35 @@
 ## agent_communication:
 ##     - agent: "main"
 ##       message: "Dark theme restored, nav cloned exactly from circuitdev.fun, home sections cloned 1:1, launch wizard wired end-to-end through /api/c/* relay, remix auto-build added, all external coin links made internal. Test everything; wallet signature step can't be completed without Phantom - verify up to the signature gate."
+
+## test_sequence: 2 (bifrost mobile-parity pass)
+## frontend:
+##   - task: "Builder mobile 1:1 with circuitdev.fun/build (bifrost)"
+##     implemented: true
+##     working: true
+##     file: "/app/frontend/src/pages/Builder.jsx + blockyKit.jsx + index.css + Sidebar.jsx + App.js"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         - working: true
+##           agent: "bifrost"
+##           comment: "44px control rows, rail 84px w/ 15 families 52x46 @4px pitch, 46px ask arrow, family flyout replaces mobile palette strip, demo program seeded per session (events_button -> variables_change -> control_if_else w/ world_update_feed), fixed header hidden on /builder mobile + own menu button, upstream probe calls (ai, chain/status, real-trades) on load, fixed askBolt receiving click event"
+##   - task: "Proxy coverage of every upstream build-page API"
+##     implemented: true
+##     working: true
+##     file: "/app/backend/server.py"
+##     stuck_count: 0
+##     priority: "high"
+##     needs_retesting: true
+##     status_history:
+##         - working: true
+##           agent: "bifrost"
+##           comment: "200: chain/status, coins/ticker, ai, real-trades, compile POST, auth/nonce, auth/siws, stocks, explore, activity, stats, rules, chain/balance, web/get, relay/*; 401 without session: launch/terms, projects/{id}/launch|send|register|status, images POST (pass-through correct); start/launch-info 404 on BOTH (path doesn't exist upstream)"
+## test_plan:
+##   current_focus:
+##     - "verify bifrost mobile parity + no regressions (launch drawer, remix auto-build, desktop builder)"
+##   test_all: true
+## agent_communication:
+##     - agent: "main"
+##       message: "Bifrost rebuilt the mobile builder to measured upstream metrics. Testing agent: verify at 390x844 the /builder structure (header rows, rail 15 families, flyout on family tap, demo blocks on canvas, no page scroll like upstream), probe calls in log, AND regressions: launch drawer opens (?launch=1 and button), remix ?q= auto-build still works (no demo seed), desktop 1440 builder unchanged, console clean."

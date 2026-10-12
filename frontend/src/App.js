@@ -59,6 +59,8 @@ function ScrollToTop() {
 function FooterRoute() {
   const { pathname } = useLocation();
   if (pathname === "/embed") return null;
+  // builder on mobile is a full-height app (no footer, like upstream); desktop keeps the footer
+  if (pathname === "/builder") return <div className="hidden lg:block"><Footer /></div>;
   return <Footer />;
 }
 

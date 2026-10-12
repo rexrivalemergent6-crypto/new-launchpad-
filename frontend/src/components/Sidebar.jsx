@@ -151,6 +151,15 @@ function Panel({ onPick }) {
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+  // the builder is a full-height app on mobile (like upstream): it draws its own top row and opens this menu itself
+  const appMode = pathname === "/builder";
+
+  useEffect(() => {
+    const openMenu = () => setOpen(true);
+    window.addEventListener("cpad:menu", openMenu);
+    return () => window.removeEventListener("cpad:menu", openMenu);
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -165,7 +174,7 @@ export default function Sidebar() {
         <Panel />
       </aside>
 
-      <header className="lg:hidden fixed top-0 inset-x-0 z-40 glass border-b border-line">
+      <header className={`${appMode ? "hidden" : "lg:hidden"} fixed top-0 inset-x-0 z-40 glass border-b border-line`}>
         <div className="flex items-center justify-between px-5 h-16">
           <Link to="/" data-testid="nav-home-mobile">
             <Logo small />

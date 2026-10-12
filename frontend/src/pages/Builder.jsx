@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkles, Rocket, Play, Pencil, ChevronDown, StickyNote, Wallet, X as Close } from "lucide-react";
+import { Sparkles, Rocket, Play, Pencil, ChevronDown, StickyNote, Wallet, Menu, X as Close } from "lucide-react";
 import { Keypair, VersionedTransaction } from "@solana/web3.js";
 import { cPost, cGet, useExplore, useLibrary } from "@/lib/relay";
 import { useWallet, signInWithWallet, signTransaction } from "@/lib/walletStore";
-import { BlockPreview, colorOf, codeForDef, programToTree, countNodes, toPlainEnglish, toBlocks, renderProgram, strip, pushInto, containsNode, findNode, insertAfter } from "@/components/blockyKit";
+import { BlockPreview, colorOf, codeForDef, programToTree, countNodes, toPlainEnglish, toBlocks, renderProgram, strip, pushInto, containsNode, findNode, insertAfter, newNode } from "@/components/blockyKit";
+import CATALOG from "@/data/blockCatalog.json";
 
 const EASE = [0.16, 1, 0.3, 1];
 let nextId = 1000;
@@ -30,6 +31,7 @@ export default function Builder() {
   const [sel, setSel] = useState(null);
   const [over, setOver] = useState(null);
   const [selFamily, setSelFamily] = useState("DT");
+  const [flyout, setFlyout] = useState(false); // mobile: family flyout over the ask bar + canvas
 
   const [sentence, setSentence] = useState(params.get("q") || "");
   const [compiling, setCompiling] = useState(false);
@@ -67,11 +69,62 @@ export default function Builder() {
     if (showLaunch && wallet && session && balanceSol == null) checkBalance(wallet);
   }, [showLaunch, wallet, session]);
 
-  const families = lib?.families || [];
-  const blocks = lib?.blocks || [];
+
+  // rail = all 15 block families in builder order (live via relay, bundled catalog until it lands)
+  const families = lib?.categories?.length ? lib.categories : CATALOG.categories;
+  const blocks = lib?.blocks?.length ? lib.blocks : CATALOG.blocks;
   const palette = useMemo(() => blocks.filter((b) => (b.categoryCode || b.code) === selFamily || codeForDef(b) === selFamily), [blocks, selFamily]);
   const fam = families.find((f) => f.code === selFamily) || { code: selFamily, name: selFamily, desc: "" };
   const say = (line) => setLog((l) => [...l.slice(-6), line]);
+
+  // same capability probes the upstream build page fires on load (through our /api/c relay)
+  const [caps, setCaps] = useState({ ai: null, chain: null, trades: null });
+  useEffect(() => {
+    let alive = true;
+    Promise.allSettled([cGet("ai"), cGet("chain/status"), cGet("real-trades")]).then(([ai, chain, trades]) => {
+      if (!alive) return;
+      const v = (r) => (r.status === "fulfilled" ? r.value : null);
+      const next = { ai: v(ai), chain: v(chain), trades: v(trades) };
+      setCaps(next);
+      if (next.ai) say(next.ai.enabled ? `bolt online — $${Number(next.ai.spentTodayUsd || 0).toFixed(2)} of $${next.ai.dailyCapUsd} daily AI budget used` : "bolt is resting today (AI budget reached) — blocks still work");
+      if (next.chain) say(next.chain.enabled ? `chain link up (${next.chain.provider || "rpc"})` : "chain link down — launches paused");
+    });
+    return () => { alive = false; };
+  }, []);
+  const aiOff = caps.ai && caps.ai.enabled === false;
+  const chainOff = caps.chain && caps.chain.enabled === false;
+
+  // first visit of the session: preload the same demo program the upstream builder ships with,
+  // built from real catalog blocks (skipped for ?q= remixes, which auto-build instead)
+  const demoSeeded = useRef(false);
+  useEffect(() => {
+    if (demoSeeded.current || params.get("q") || tree.length || !blocks.length) return;
+    try { if (sessionStorage.getItem("cpad:demo-seeded")) return; } catch { /* storage blocked: seed anyway */ }
+    demoSeeded.current = true;
+    const byType = Object.fromEntries(blocks.map((b) => [b.type, b]));
+    const mk = (type, vals) => {
+      const def = byType[type];
+      if (!def) return null;
+      const n = newNode(def, `n-${nextId++}`);
+      return { ...n, vals: { ...vals } };
+    };
+    const hat = mk("events_button", { label: "Go" });
+    if (!hat) return;
+    const change = mk("variables_change", { var: "clicks", by: "1" });
+    const iff = mk("control_if_else", { condition: "clicks ≥ 3" });
+    if (iff) {
+      iff.children.then = [
+        mk("world_update_feed", { message: "Three clicks! Resetting." }),
+        mk("variables_set", { var: "clicks", value: "0" }),
+      ].filter(Boolean);
+      iff.children.else = [mk("world_update_feed", { message: "Click {clicks}" })].filter(Boolean);
+    }
+    hat.children.in = [change, iff].filter(Boolean);
+    setTree([hat]);
+    setSelFamily("EV");
+    try { sessionStorage.setItem("cpad:demo-seeded", "1"); } catch { /* ignore */ }
+    say("demo loaded — press Run, edit any block, or ask bolt for something new");
+  }, [blocks, params, tree.length]);
 
   const ctx = { tree, setTree, sel, setSel, over, setOver, onDrop: handleDrop };
 
@@ -90,6 +143,12 @@ export default function Builder() {
       setTree((t) => insertAfter(t, target.node.id, node));
     }
     setSel(null);
+  }
+
+  function pickFamily(code) {
+    const mobile = typeof window !== "undefined" && window.innerWidth < 1024;
+    if (mobile) setFlyout((open) => !(open && selFamily === code));
+    setSelFamily(code);
   }
 
   function nodeChildren(def) {
@@ -295,49 +354,60 @@ export default function Builder() {
   return (
     <div className="nbb-page min-h-screen">
       <div className="max-w-[1400px] mx-auto lg:pl-[264px]">
-        <div className="px-4 lg:px-8 pt-6 pb-3 flex flex-wrap items-center gap-3" data-testid="blocky-project-bar">
-          <div className="w-12 h-12 nbb-pill flex items-center justify-center text-xl" data-testid="blocky-project-icon">☻</div>
+        <div className="px-3 sm:px-4 lg:px-8 pt-[10px] sm:pt-6 pb-2 sm:pb-3 flex items-center gap-3" data-testid="blocky-project-bar">
+          <Link to="/" aria-label="CodePad home" data-testid="blocky-project-icon"
+            className="ml-1 sm:ml-0 w-7 h-7 sm:w-12 sm:h-12 shrink-0 rounded-lg sm:rounded-2xl border-2 sm:border-[1.5px] border-white/20 bg-[#0E141D] flex items-center justify-center text-[15px] sm:text-xl">
+            ☻
+          </Link>
           {editingName ? (
             <input autoFocus value={projectName} onChange={(e) => setProjectName(e.target.value)} onBlur={() => setEditingName(false)}
               onKeyDown={(e) => e.key === "Enter" && setEditingName(false)} data-testid="blocky-project-name-input"
-              className="nbb-pill px-6 py-3 font-extrabold text-2xl outline-none w-64" />
+              className="nbb-ctl nbb-ctl-dark !h-[42px] sm:!h-auto w-[186px] sm:w-64 px-4 sm:px-6 sm:py-3 font-bold sm:font-extrabold text-[15px] sm:text-2xl outline-none" />
           ) : (
             <button onClick={() => setEditingName(true)} data-testid="blocky-project-name"
-              className="nbb-pill inline-flex items-center gap-3 px-6 py-3 font-extrabold text-2xl">
-              {projectName} <Pencil size={15} className="opacity-60" /> <ChevronDown size={15} className="opacity-60" />
+              className="nbb-ctl nbb-ctl-dark !h-[42px] sm:!h-auto inline-flex items-center gap-2 sm:gap-3 pl-4 pr-1.5 sm:px-6 sm:py-3 font-bold sm:font-extrabold text-[15px] sm:text-2xl min-w-0">
+              <span className="truncate max-w-[110px] sm:max-w-none">{projectName}</span>
+              <Pencil size={13} className="opacity-50 shrink-0" />
+              <span className="w-[26px] h-[26px] rounded-lg grid place-items-center shrink-0 hover:bg-white/5" data-testid="blocky-project-menu"><ChevronDown size={15} className="opacity-70" /></span>
             </button>
           )}
+          <button type="button" onClick={() => window.dispatchEvent(new Event("cpad:menu"))} aria-label="Menu" data-testid="builder-menu-button"
+            className="lg:hidden ml-auto w-9 h-9 rounded-xl border-2 border-white/15 bg-[#0E141D] grid place-items-center text-snow/80">
+            <Menu size={17} />
+          </button>
         </div>
 
-        <div className="px-4 lg:px-8 pb-3 flex flex-wrap items-center gap-3" data-testid="blocky-mode-chips">
-          <button onClick={() => setSelFamily("SK")} data-testid="chip-stocks"
-            className="nbb-pill inline-flex items-center gap-2.5 px-5 py-3 font-extrabold text-lg" style={{ background: "#D6F26E", color: "#0A0F16" }}>
-            <span className="w-8 h-8 rounded-lg bg-white border-[2.5px] border-[#131311] flex items-center justify-center font-mono text-[11px] font-bold">SK</span>
-            Stocks <span className="rounded-full bg-[#F2A9CB] border-[2.5px] border-[#131311] font-mono text-[10px] font-bold px-2.5 py-0.5">NEW</span>
+        <div className="px-3 sm:px-4 lg:px-8 pb-2 sm:pb-3 flex items-center gap-2 sm:gap-3" data-testid="blocky-mode-chips">
+          <button onClick={() => { setSelFamily("SK"); setFlyout(true); }} data-testid="chip-stocks"
+            className="nbb-ctl sm:!h-auto inline-flex items-center gap-2.5 px-4 sm:px-5 sm:py-3 text-[15px] sm:text-lg shrink-0" style={{ background: "#D6F26E", color: "#0A0F16" }}>
+            <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg bg-white border-2 sm:border-[2.5px] border-[#131311] flex items-center justify-center font-mono text-[9px] sm:text-[11px] font-bold">SK</span>
+            Stocks <span className="rounded-full bg-[#F2A9CB] border-2 sm:border-[2.5px] border-[#131311] font-mono text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 leading-none">NEW</span>
           </button>
           <button onClick={() => setShowLog(!showLog)} data-testid="chip-log"
-            className={`nbb-pill px-5 py-3 font-extrabold text-lg ${showLog ? "!bg-[#63E6A9] !text-[#0A0F16]" : "!bg-[#0E141D]"}`}>
+            className={`nbb-ctl sm:!h-auto px-4 sm:px-5 sm:py-3 text-[14px] sm:text-lg shrink-0 ${showLog ? "" : "nbb-ctl-dark"}`}
+            style={showLog ? { background: "#63E6A9", color: "#0A0F16" } : undefined}>
             Bolt & log
           </button>
-          <button onClick={() => setShowCode(!showCode)} data-testid="chip-code"
-            className={`nbb-pill px-5 py-3 font-mono font-bold text-lg ${showCode ? "!bg-[#63E6A9] !text-[#0A0F16]" : "!bg-[#0E141D]"}`}>
+          <button onClick={() => setShowCode(!showCode)} data-testid="chip-code" aria-label="code view"
+            className={`nbb-ctl sm:!h-auto w-11 sm:w-auto sm:px-5 sm:py-3 font-mono text-[15px] sm:text-lg shrink-0 grid place-items-center ${showCode ? "" : "nbb-ctl-dark"}`}
+            style={showCode ? { background: "#63E6A9", color: "#0A0F16" } : undefined}>
             {"<>"}
           </button>
         </div>
 
-        <div className="px-4 lg:px-8 pb-4 flex flex-wrap items-center gap-3" data-testid="blocky-actions">
-          <button onClick={() => setShowLaunch(true)} data-testid="blocky-launch-button"
-            className="nbb-pill px-8 py-3.5 font-extrabold text-xl" style={{ background: "#63E6A9", color: "#0A0F16" }}>
+        <div className="px-3 sm:px-4 lg:px-8 pb-[10px] sm:pb-4 flex items-center gap-2 sm:gap-3" data-testid="blocky-actions">
+          <button onClick={() => setShowLaunch(true)} data-testid="blocky-launch-button" title={chainOff ? "chain link down — launches paused" : "launch this coin"}
+            className="nbb-ctl sm:!h-auto w-[102px] sm:w-auto sm:px-8 sm:py-3.5 text-[15px] sm:text-xl shrink-0" style={{ background: "#63E6A9", color: "#0A0F16" }}>
             Launch
           </button>
-          <div className="relative flex">
+          <div className="relative flex shrink-0">
             <button onClick={runSimulate} disabled={compiling} data-testid="blocky-run-button"
-              className="nbb-pill inline-flex items-center gap-2 px-8 py-3.5 font-extrabold text-xl !rounded-r-none" style={{ background: "#4CD98F", color: "#0A0F16" }}>
-              <Play size={18} /> Run
+              className="nbb-ctl sm:!h-auto inline-flex items-center justify-center gap-1.5 sm:gap-2 w-[96px] sm:w-auto sm:px-8 sm:py-3.5 text-[16px] sm:text-xl !rounded-r-none" style={{ background: "#4CD98F", color: "#0A0F16" }}>
+              <Play size={14} className="sm:w-[18px] sm:h-[18px]" fill="currentColor" /> Run
             </button>
-            <button onClick={() => setRunOpen(!runOpen)} data-testid="blocky-run-dropdown"
-              className="nbb-pill !rounded-l-none !rounded-r-xl px-3.5 py-3.5 font-extrabold" style={{ background: "#4CD98F", color: "#0A0F16", borderLeft: "3px solid rgba(0,0,0,0.55)" }}>
-              <ChevronDown size={16} />
+            <button onClick={() => setRunOpen(!runOpen)} data-testid="blocky-run-dropdown" aria-label="run options"
+              className="nbb-ctl sm:!h-auto !rounded-l-none w-[31px] sm:w-auto sm:px-3.5 sm:py-3.5 grid place-items-center" style={{ background: "#4CD98F", color: "#0A0F16", borderLeftWidth: 0 }}>
+              <ChevronDown size={15} />
             </button>
             {runOpen && (
               <div className="absolute z-30 mt-1 top-full w-64 nbb-pill overflow-hidden" data-testid="blocky-run-menu">
@@ -350,16 +420,16 @@ export default function Builder() {
               </div>
             )}
           </div>
-          <span className="ml-auto font-mono text-[12px] font-bold text-snow/70" data-testid="blocky-count">{blockCount} blocks</span>
+          <span className="ml-auto font-mono text-[11px] sm:text-[12px] font-bold text-snow/70" data-testid="blocky-count">{blockCount} blocks</span>
         </div>
       </div>
 
       {/* workspace: rail + ask/canvas + palette */}
-      <div className="border-y border-line flex min-h-[calc(100vh-218px)]" data-testid="blocky-workspace">
-        {/* family rail */}
-        <div className="nbb-rail w-[72px] sm:w-20 shrink-0 flex flex-col items-center gap-3 py-4 overflow-y-auto" data-testid="blocky-rail">
-          {(families.length ? families : [{ code: "EV" }, { code: "LG" }, { code: "DT" }, { code: "FN" }]).map((f) => (
-            <button key={f.code} onClick={() => setSelFamily(f.code)} data-testid={`rail-${f.code}`} title={f.name}
+      <div className="nbb-divider lg:border-t-0 lg:border-y lg:border-line relative flex h-[calc(100dvh-169px)] min-h-[480px] sm:h-[calc(100dvh-210px)] lg:h-auto lg:min-h-[calc(100vh-218px)]" data-testid="blocky-workspace">
+        {/* family rail — 84px column, 52x46 buttons on a 50px pitch (upstream mobile metrics) */}
+        <div className="nbb-rail nbb-rail-col lg:border-r-[1.5px] w-[84px] lg:w-20 shrink-0 flex flex-col items-center gap-1 lg:gap-3 pt-3 pb-4 lg:py-4 overflow-y-auto" data-lenis-prevent data-testid="blocky-rail">
+          {families.map((f) => (
+            <button key={f.code} onClick={() => pickFamily(f.code)} data-testid={`rail-${f.code}`} title={f.name}
               style={{ "--c": colorOf(f.code) }}
               className={`nbb-rail-btn ${selFamily === f.code ? "active" : ""}`}>
               <span className="rail-inner">{f.code}</span>
@@ -369,31 +439,32 @@ export default function Builder() {
 
         <div className="flex-1 flex flex-col min-w-0">
           {/* ask bolt bar */}
-          <div className="px-4 sm:px-8 py-5" style={{ background: "#0A0F16" }}>
-            <div className="nbb-pill flex items-center gap-3 p-2.5 pl-6" style={{ boxShadow: "0 0 0 1px rgba(99,230,169,0.22), 0 14px 44px -14px rgba(99,230,169,0.35)" }}>
+          <div className="px-5 sm:px-8 pt-2 pb-3.5 sm:py-5" style={{ background: "#0A0F16" }}>
+            <div className="nbb-pill !border-2 sm:!border-[1.5px] flex items-center gap-3 p-[9px] pl-4 sm:p-2.5 sm:pl-6" style={{ boxShadow: "0 0 0 1px rgba(99,230,169,0.22), 0 14px 44px -14px rgba(99,230,169,0.35)" }}>
               <div className="flex-1 min-w-0">
-                <p className="font-mono text-[11px] font-bold tracking-[0.14em] text-snow/60">ASK BOLT</p>
+                <p className="font-mono text-[11px] font-bold tracking-[0.14em] text-snow/60 leading-none mb-1.5 sm:mb-0 sm:leading-normal">ASK BOLT</p>
                 <input
                   data-testid="builder-sentence-input"
                   value={sentence}
                   onChange={(e) => setSentence(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && askBolt()}
                   placeholder="Describe it, Bolt builds it…"
-                  className="w-full bg-transparent outline-none font-bold text-xl sm:text-2xl placeholder:text-snow/35 min-w-0"
+                  className="w-full bg-transparent outline-none font-bold text-[18px] sm:text-2xl placeholder:text-snow/35 min-w-0"
                 />
               </div>
-              <button data-testid="builder-ask-bolt-button" onClick={askBolt} disabled={compiling || !sentence.trim()}
-                className="shrink-0 w-16 h-16 rounded-2xl border-2 border-black/50 flex items-center justify-center text-2xl font-black text-[#0A0F16] transition-transform active:scale-95 disabled:opacity-50"
+              <button data-testid="builder-ask-bolt-button" onClick={() => askBolt()} disabled={compiling || !sentence.trim() || aiOff}
+                title={aiOff ? "bolt is resting today — AI budget reached" : "build it"}
+                className="shrink-0 w-[46px] h-[46px] sm:w-16 sm:h-16 rounded-[14px] sm:rounded-2xl border-[3px] sm:border-2 border-black/50 flex items-center justify-center text-lg sm:text-2xl font-black text-[#0A0F16] transition-transform active:scale-95 disabled:opacity-50"
                 style={{ background: "#63E6A9", boxShadow: "0 8px 30px -8px rgba(99,230,169,0.5)" }}>
                 {compiling ? <Sparkles size={22} className="animate-spin" /> : "↑"}
               </button>
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-2.5" data-testid="blocky-suggestions">
+            <div className="mt-4 sm:mt-3 flex flex-wrap items-center justify-center sm:justify-start gap-2.5" data-testid="blocky-suggestions">
               <select
                 value=""
                 onChange={(e) => { if (e.target.value) setSentence(e.target.value); }}
                 data-testid="builder-ideas-dropdown"
-                className="nbb-in !h-11 !rounded-xl pl-4 pr-9 font-semibold text-[14px] cursor-pointer appearance-none max-w-full"
+                className="nbb-in !h-8 sm:!h-11 !rounded-full sm:!rounded-xl !border-2 sm:!border-[1.5px] pl-4 pr-9 font-semibold text-[13px] sm:text-[14px] cursor-pointer appearance-none max-w-full"
                 style={{ backgroundImage: "linear-gradient(45deg, transparent 50%, #63E6A9 50%), linear-gradient(135deg, #63E6A9 50%, transparent 50%)", backgroundPosition: "calc(100% - 18px) 55%, calc(100% - 13px) 55%", backgroundSize: "5px 5px", backgroundRepeat: "no-repeat" }}
               >
                 <option value="">try an idea</option>
@@ -408,7 +479,7 @@ export default function Builder() {
           </div>
 
           {/* canvas */}
-          <div className="flex-1 nbb-canvas border-t border-line px-4 sm:px-8 py-7 overflow-y-auto" style={{ maxHeight: "calc(100vh - 160px)" }}
+          <div className="flex-1 min-h-0 nbb-canvas border-t-[3px] lg:border-t border-line px-4 sm:px-8 py-7 overflow-auto lg:max-h-[calc(100vh-160px)]" data-lenis-prevent
             onDragOver={(e) => e.preventDefault()} onDrop={handleRootDrop} data-testid="blocky-canvas">
             {showCode ? (
               <pre className="font-mono text-[11.5px] font-semibold text-snow whitespace-pre-wrap break-all max-w-full" data-testid="blocky-json">
@@ -467,35 +538,42 @@ export default function Builder() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* mobile palette strip */}
-      <div className="lg:hidden border-t border-line px-4 py-5 overflow-x-auto" style={{ background: "#0A0F16" }} data-testid="blocky-palette-mobile">
-        <div className="flex flex-col items-start gap-4">
-          <div className="flex items-center gap-3.5 w-full" data-testid="blocky-family-head-mobile">
-            <span className="w-12 h-12 rounded-xl border-2 border-black/50 flex items-center justify-center font-mono font-extrabold text-sm shadow-[3px_3px_0_rgba(0,0,0,0.35)]"
-              style={{ background: colorOf(selFamily), color: "#0A0F16" }}>
-              {selFamily}
-            </span>
-            <div className="min-w-0">
-              <h2 className="font-extrabold text-2xl leading-none">{fam.name}</h2>
-              <p className="text-[13px] text-fog mt-1">{fam.desc}</p>
+        {/* mobile: family flyout over ask bar + canvas (upstream behaviour: tap a family, tap a block) */}
+        {flyout && (
+          <div className="lg:hidden absolute top-0 bottom-0 left-[84px] right-0 z-20 nbb-flyout nbb-pop-in flex flex-col" data-testid="blocky-palette-mobile">
+            <div className="nbb-flyout-head shrink-0 flex items-center gap-3 px-4 sm:px-5" style={{ background: `linear-gradient(0deg, ${colorOf(selFamily)}2E, ${colorOf(selFamily)}2E), #0E141D` }}
+              data-testid="blocky-family-head-mobile">
+              <span className="w-[46px] h-[46px] shrink-0 rounded-xl border-[3px] border-black/55 flex items-center justify-center font-mono font-extrabold text-[15px] shadow-[3px_3px_0_rgba(0,0,0,0.42)]"
+                style={{ background: colorOf(selFamily), color: "#0A0F16" }}>
+                {selFamily}
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-extrabold text-[22px] leading-tight truncate">{fam.name}</h2>
+                <p className="text-[13px] text-snow/65 leading-snug line-clamp-2">{fam.desc}</p>
+              </div>
+              <button type="button" onClick={() => setFlyout(false)} aria-label="close blocks" data-testid="blocky-flyout-close"
+                className="shrink-0 w-9 h-9 rounded-xl border-[3px] border-black/55 bg-[#E8EDF5] text-[#0A0F16] grid place-items-center shadow-[2px_2px_0_rgba(0,0,0,0.42)]">
+                <Close size={16} strokeWidth={3} />
+              </button>
+            </div>
+            <div className="flex-1 min-h-0 overflow-y-auto px-5 pt-6 pb-10" data-lenis-prevent>
+              <p className="font-mono text-[13px] font-bold tracking-[0.12em] text-snow/55 mb-5">CLICK TO ADD</p>
+              <div className="flex flex-col items-start gap-[22px]" data-testid="palette-list-mobile">
+                {palette.map((b) => (
+                  <div key={b.type} draggable
+                    onDragStart={(e) => { e.dataTransfer.setData("text/plain", "new:" + b.type); e.dataTransfer.effectAllowed = "copy"; }}
+                    onDragEnd={() => setFlyout(false)}
+                    onClick={() => { addByType(b.type, sel); setFlyout(false); say(`added: ${b.label}`); }}
+                    data-testid={`palette-${b.type}`}
+                    className="cursor-pointer max-w-full active:scale-[0.98] transition-transform">
+                    <BlockPreview def={b} code={codeForDef(b)} large />
+                  </div>
+                ))}
+                {!palette.length && <p className="font-mono text-[12px] text-snow/50">loading…</p>}
+              </div>
             </div>
           </div>
-          <p className="font-mono text-[11px] font-bold tracking-[0.14em] text-snow/55">{fam.name.toUpperCase()} — CLICK TO ADD</p>
-          <div className="flex items-start gap-4 flex-wrap">
-            {palette.map((b) => (
-              <div key={b.type} draggable
-                onDragStart={(e) => { e.dataTransfer.setData("text/plain", "new:" + b.type); }}
-                onClick={() => addByType(b.type, sel)}
-                data-testid={`palette-${b.type}`}
-                className="cursor-pointer">
-                <BlockPreview def={b} code={codeForDef(b)} />
-              </div>
-            ))}
-            {!palette.length && <p className="font-mono text-[12px] text-snow/50">loading…</p>}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* bolt & log drawer */}

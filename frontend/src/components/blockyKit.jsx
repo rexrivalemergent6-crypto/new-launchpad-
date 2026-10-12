@@ -132,17 +132,21 @@ function PartsLine({ parts, node, ctx }) {
 }
 
 /** static preview of a block (palette) — no inputs, same body */
-export function BlockPreview({ def, code }) {
+export function BlockPreview({ def, code, large = false }) {
   const shape = def.shape;
   const cls = shape === "hat" ? "pz-hat pz-tab" : shape === "reporter" ? "pz-reporter" : shape === "boolean" ? "pz-boolean" : shape === "terminal" ? "pz-notch" : "pz-notch pz-tab";
+  // large = full canvas-size block (mobile flyout, like upstream); default = compact palette thumbnail
+  const pad = large ? "px-3 py-2.5 gap-x-2 gap-y-1.5" : "px-2.5 py-1.5 gap-x-1.5 gap-y-1";
+  const txt = large ? "text-[13.5px]" : "text-[12px]";
+  const pill = large ? "pz-in inline-flex items-center !max-w-[150px] truncate" : "pz-in inline-flex items-center !h-[20px] !text-[10.5px] !px-2 !max-w-[90px] truncate";
   return (
     <div className="pz" style={{ "--c": colorOf(code) }}>
-      <div className={`pz-body ${cls} inline-flex flex-wrap items-center gap-x-1.5 gap-y-1 px-2.5 py-1.5 max-w-full ${shape === "boolean" ? "px-5" : ""}`}>
+      <div className={`pz-body ${cls} inline-flex flex-wrap items-center ${pad} max-w-full ${shape === "boolean" ? "px-5" : ""}`}>
         <span className="pz-tag">{code}</span>
         {partsOf(def).map((p, i) => p.k === "label"
-          ? <span key={i} className="text-[12px] font-semibold leading-tight">{p.t}</span>
+          ? <span key={i} className={`${txt} font-semibold leading-tight`}>{p.t}</span>
           : p.k === "slot" ? null
-          : <span key={i} className="pz-in !h-[20px] !text-[10.5px] !px-2 !max-w-[90px] truncate">{p.k === "dropdown" ? `${p.o?.[0] ?? p.n} ▾` : String(p.v ?? p.n ?? "")}</span>)}
+          : <span key={i} className={pill}>{p.k === "dropdown" ? `${p.o?.[0] ?? p.n} ▾` : String(p.v ?? p.n ?? "")}</span>)}
       </div>
     </div>
   );
