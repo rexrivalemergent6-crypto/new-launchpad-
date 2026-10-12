@@ -49,3 +49,7 @@
 - Live relayed data (coin names, stats, block catalog) is upstream data and stays verbatim — that's the feed itself, not copied copy.
 - Discover/Explore feed is server-filtered: only coins launched through the pad (mint + state present), official platform coin and non-launcher entries hard-filtered in relay_explore.
 - Library page: full 134-block catalog restored (live /api/relay/library + offline snapshot fallback), search, family/module views, per-block "Ask Chip" prefill.
+
+## Full Circuit de-referencing (2026-10-12, round 3)
+- Server-side brand filter: coins with "circuit" in name/ticker dropped from /api/relay/explore (26 clean cards) and every /api/relay/scoreboard list — only pad coins without other-brand naming appear.
+- Burn program rebranded to CodePad: Flywheel = "the CodePad program", "Launch fees buy back and burn $CODEPAD", 6.6M $CODEPAD torched, live "AI agents on duty" counter (relayed usesAi count) — buyback + burn + AI agents paired as requested. Scoreboard/Home burn units now $CODEPAD. Zero $CIRCUIT/Circuit mentions in our copy (grep-verified).

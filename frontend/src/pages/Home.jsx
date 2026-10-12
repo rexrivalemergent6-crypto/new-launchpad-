@@ -236,7 +236,7 @@ export default function Home() {
           <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-5" data-testid="scoreboard-teaser">
             {[
               { label: "Sent to holders", value: board?.totals?.paidSol?.text, unit: "SOL" },
-              { label: "Supply torched", value: board?.totals?.burnedTokens?.text, unit: "$CIRCUIT" },
+              { label: "Supply torched", value: board?.totals?.burnedTokens?.text, unit: "$CODEPAD" },
               { label: "Repurchased", value: board?.totals?.buybackSol?.text, unit: "SOL" },
             ].map((t, i) => (
               <div key={t.label} className="border border-line rounded-2xl bg-ink p-8">

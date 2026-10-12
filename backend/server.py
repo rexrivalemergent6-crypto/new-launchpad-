@@ -93,14 +93,28 @@ OFFICIAL_MINT_PREFIX = "EcZndA"
 
 
 def is_pad_coin(card: dict) -> bool:
-    """Only coins actually launched through the circuit pad — no platform entries."""
+    """Only coins actually launched through the pad — no platform entries, no other-brand coins."""
     if not card.get("mint"):
         return False
     if str(card.get("mint", "")).startswith(OFFICIAL_MINT_PREFIX):
         return False
-    if str(card.get("slug", "")).lower() in ("circuit", "circuit-coin", "official"):
+    slug = str(card.get("slug", "")).lower()
+    if slug in ("circuit", "circuit-coin", "official"):
+        return False
+    blob = f"{card.get('name', '')} {card.get('ticker', '')}".lower()
+    if "circuit" in blob:
         return False
     return bool(card.get("state"))
+
+
+def brand_clean_list(items: list) -> list:
+    out = []
+    for it in items or []:
+        blob = f"{it.get('name', '')} {it.get('ticker', '')}".lower()
+        if "circuit" in blob:
+            continue
+        out.append(it)
+    return out
 
 
 @api_router.get("/relay/explore")
@@ -122,16 +136,23 @@ async def relay_explore(request: Request):
         content = r.content
     cache_set(key, (content,), TTL_JSON)
     return Response(content=content, media_type="application/json", status_code=r.status_code)
-
-
 @api_router.get("/relay/scoreboard")
 async def relay_scoreboard():
     cached = cache_get("scoreboard", TTL_JSON)
     if cached:
         return Response(content=cached[0], media_type="application/json")
     r = await upstream("api/scoreboard")
-    cache_set("scoreboard", (r.content,), TTL_JSON)
-    return json_response(r)
+    content = r.content
+    if r.status_code == 200:
+        try:
+            data = r.json()
+            if isinstance(data.get("lists"), dict):
+                data["lists"] = {k: brand_clean_list(v) for k, v in data["lists"].items()}
+                content = json.dumps(data).encode()
+        except Exception:
+            pass
+    cache_set("scoreboard", (content,), TTL_JSON)
+    return Response(content=content, media_type="application/json", status_code=r.status_code)
 
 
 @api_router.get("/relay/img/{image_id}")

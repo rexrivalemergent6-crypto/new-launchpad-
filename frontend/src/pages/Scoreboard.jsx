@@ -5,7 +5,7 @@ const EASE = [0.16, 1, 0.3, 1];
 
 const TOTALS = [
   { key: "paidSol", label: "Paid to holders", unit: "SOL" },
-  { key: "burnedTokens", label: "Tokens burned", unit: "$CIRCUIT" },
+  { key: "burnedTokens", label: "Supply torched", unit: "$CODEPAD" },
   { key: "buybackSol", label: "Bought back", unit: "SOL" },
   { key: "stocksSol", label: "In tokenized stocks", unit: "SOL" },
   { key: "payouts", label: "Payout events", unit: "" },
