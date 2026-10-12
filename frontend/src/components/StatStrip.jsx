@@ -1,13 +1,14 @@
-import { useStats, fmtUsd, fmtNum } from "@/lib/relay";
+import { useOurLedger, fmtNum } from "@/lib/relay";
 
 export default function StatStrip() {
-  const { data, isLoading, isError } = useStats();
-
+  // CodePad's own ledger only — no upstream platform totals, no upstream flagship coin
+  const o = useOurLedger();
+  const isLoading = o.isLoading, isError = false;
   const stats = [
-    { label: "Coins launched", value: data?.coins, fmt: (v) => fmtNum(v) },
-    { label: "SOL traded", value: data?.volumeSol, fmt: (v) => fmtNum(v) },
-    { label: "Trades", value: data?.trades, fmt: (v) => fmtNum(v) },
-    { label: "Flagship coin cap", value: data?.official?.marketCapUsd, fmt: (v) => fmtUsd(v) },
+    { label: "Launched via CodePad", value: o.count, fmt: (v) => fmtNum(v || 0) },
+    { label: "SOL they traded", value: o.volumeSol, fmt: (v) => fmtNum(v || 0) },
+    { label: "Their trades", value: o.trades, fmt: (v) => fmtNum(v || 0) },
+    { label: "Live on pump.fun", value: o.live, fmt: (v) => fmtNum(v || 0) },
   ];
 
   return (

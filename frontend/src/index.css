@@ -381,3 +381,13 @@ body {
 .pz-body { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 .pz-body input, .pz-body select { -webkit-user-select: text; user-select: text; }
 .pz-picked { outline: 2.5px dashed #63E6A9; outline-offset: 3px; opacity: 0.6; }
+
+/* ------- dark-UI blocks: deep family tint body, bright family border, light text (rail stays bright) ------- */
+.pz { --t: color-mix(in srgb, var(--c, #F0B04A) 24%, #10161F); color: #E8EDF5; }
+.pz-body { background: var(--t); border-color: var(--c, #F0B04A); box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.45); }
+.pz-tab::after, .pz-hat::before { background: var(--t); border-color: var(--c, #F0B04A); }
+.pz-notch::before { border-color: var(--c, #F0B04A); }
+.pz-arm { background: var(--t); border-left-color: var(--c, #F0B04A); }
+.pz-tag { background: transparent; color: var(--c, #F0B04A); border-color: var(--c, #F0B04A); }
+.pz-body .pz-del { color: var(--c, #F0B04A); }
+.pz-body input[type="checkbox"] { accent-color: var(--c, #F0B04A); }

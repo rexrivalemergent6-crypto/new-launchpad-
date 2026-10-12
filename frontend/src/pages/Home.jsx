@@ -7,7 +7,7 @@ import XIcon from "@/components/XIcon";
 import StatStrip from "@/components/StatStrip";
 import CoinCard from "@/components/CoinCard";
 import { RuleStack, MiniBlock } from "@/components/blocks";
-import { useExplore, useScoreboard, relayImg, fmtUsd, fmtSol } from "@/lib/relay";
+import { useOurLedger, relayImg, fmtUsd, fmtSol, fmtNum } from "@/lib/relay";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -67,10 +67,10 @@ export default function Home() {
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const yCanvas = useTransform(scrollYProgress, [0, 1], [0, -90]);
-  const { data: explore } = useExplore();
-  const { data: board } = useScoreboard();
-  const coins = (explore?.cards || []).slice(0, 6);
-  const flagship = (explore?.cards || [])[0];
+  // only coins launched through CodePad — never upstream's own coins or platform totals
+  const ours = useOurLedger();
+  const coins = ours.coins.filter((c) => c.card).map((c) => c.card).slice(0, 6);
+  const flagship = ours.newest?.card || null;
 
   const build = () => {
     window.location.assign(`/builder?q=${encodeURIComponent(sentence || "")}`);
@@ -105,7 +105,7 @@ export default function Home() {
                 {flagship.image && <img src={relayImg(flagship.image)} alt={flagship.name} className="w-9 h-9 rounded-lg object-cover border border-line" />}
                 <div className="min-w-0">
                   <p className="text-sm font-bold truncate">{flagship.name} <span className="font-mono text-xs text-mint">${flagship.ticker}</span></p>
-                  <p className="font-mono text-[10px] text-fog/70">flagship on the pad</p>
+                  <p className="font-mono text-[10px] text-fog/70">newest coin launched via CodePad</p>
                 </div>
               </div>
               <button
@@ -126,7 +126,10 @@ export default function Home() {
               </a>
             </>
           ) : (
-            <p className="font-mono text-[11px] text-fog/60">flagship coin loading…</p>
+            <p className="font-mono text-[11px] text-fog/70" data-testid="flagship-empty">
+              {ours.isLoading ? "checking our launches…" : ours.count ? `${ours.count} coin${ours.count > 1 ? "s" : ""} launched via CodePad — syncing their live numbers…` : "CodePad's own counter starts with your first launch."}
+              {!ours.isLoading && !ours.count && <Link to="/builder?launch=1" className="ml-3 text-mint hover:underline" data-testid="flagship-launch">launch one →</Link>}
+            </p>
           )}
         </div>
       </div>
@@ -171,6 +174,13 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.62, ease: EASE }}
               className="mt-8 max-w-full"
             >
+              <button
+                data-testid="hero-blueprint-button"
+                onClick={() => window.location.assign("/recipes")}
+                className="mb-7 inline-flex items-center gap-2.5 rounded-2xl bg-mint-bright hover:bg-mint text-[#0A0F16] font-extrabold text-xl sm:text-2xl px-8 sm:px-10 py-4 sm:py-5 transition-all duration-200 hover:shadow-[0_0_46px_rgba(74,222,128,0.45)] active:scale-[0.97]"
+              >
+                Pick a blueprint <ArrowUpRight size={24} strokeWidth={2.6} />
+              </button>
               <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-fog/70 mb-2">ask bolt</p>
               <div className="flex items-center gap-2 border border-line rounded-2xl bg-panel/80 p-2 focus-within:border-mint/50 transition-colors max-w-lg">
                 <input
@@ -207,9 +217,6 @@ export default function Home() {
                 <a href="/builder" data-testid="hero-blocks-link" className="inline-flex items-center gap-1 text-mint font-medium hover:underline">
                   Build with blocks <ArrowUpRight size={14} />
                 </a>
-                <a href="/recipes" data-testid="hero-recipes-link" className="inline-flex items-center gap-1 text-mint font-medium hover:underline">
-                  Pick a blueprint <ArrowUpRight size={14} />
-                </a>
               </div>
             </motion.div>
           </div>
@@ -243,7 +250,7 @@ export default function Home() {
             <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">live · since day one</p>
             <h2 className="mt-3 text-3xl lg:text-5xl font-bold tracking-tight">Fed straight by the relay.</h2>
           </div>
-          <span className="hidden sm:block font-mono text-[11px] text-fog">nothing here is stale — numbers stream in</span>
+          <span className="hidden sm:block font-mono text-[11px] text-fog">counted from coins launched through CodePad</span>
         </div>
         <StatStrip />
       </section>
@@ -251,7 +258,7 @@ export default function Home() {
       {/* ============ JUST LAUNCHED ============ */}
       <section className="max-w-[1240px] mx-auto px-6 lg:px-10 pb-20 lg:pb-28">
         <div className="flex items-end justify-between gap-6 mb-8">
-          <h2 className="text-3xl lg:text-5xl font-bold tracking-tight">Just launched</h2>
+          <h2 className="text-3xl lg:text-5xl font-bold tracking-tight">Just launched via CodePad</h2>
           <Link to="/explore" data-testid="see-all-explore" className="group inline-flex items-center gap-1.5 text-mint font-medium">
             See all <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </Link>
@@ -260,6 +267,12 @@ export default function Home() {
           {coins.map((c, i) => (
             <CoinCard key={c.slug || i} coin={c} index={i} />
           ))}
+          {!ours.isLoading && coins.length === 0 && (
+            <div className="sm:col-span-2 lg:col-span-3 border border-line rounded-2xl bg-panel p-8 text-center" data-testid="just-launched-empty">
+              <p className="font-bold">{ours.count ? "Your CodePad coins are syncing their live numbers…" : "No coins launched through CodePad yet — yours starts this list."}</p>
+              <Link to="/builder?launch=1" className="mt-3 inline-block text-mint font-semibold hover:underline">Launch a coin →</Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -343,11 +356,12 @@ export default function Home() {
           <h2 className="mt-3 text-3xl lg:text-5xl font-bold tracking-tight max-w-2xl">
             Launch fees loop back as burns.
           </h2>
+          <p className="mt-3 text-fog max-w-xl text-sm">CodePad's own numbers, counted from coins launched here. CodePad has no token of its own yet.</p>
           <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-5" data-testid="scoreboard-teaser">
             {[
-              { label: "Sent to holders", value: board?.totals?.paidSol?.text, unit: "SOL" },
-              { label: "Supply torched", value: board?.totals?.burnedTokens?.text, unit: "$CODEPAD" },
-              { label: "Repurchased", value: board?.totals?.buybackSol?.text, unit: "SOL" },
+              { label: "Coins launched through CodePad", value: ours.isLoading ? null : fmtNum(ours.count), unit: "" },
+              { label: "SOL they traded", value: ours.isLoading ? null : fmtNum(ours.volumeSol), unit: "SOL" },
+              { label: "Live on pump.fun", value: ours.isLoading ? null : fmtNum(ours.live), unit: "coins" },
             ].map((t, i) => (
               <div key={t.label} className="border border-line rounded-2xl bg-ink p-8">
                 <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fog">{t.label}</div>
@@ -358,7 +372,7 @@ export default function Home() {
             ))}
           </div>
           <Link to="/flywheel" data-testid="scoreboard-link" className="group mt-8 inline-flex items-center gap-1.5 text-mint font-medium">
-            See the full loop <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            See the loop <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       </section>

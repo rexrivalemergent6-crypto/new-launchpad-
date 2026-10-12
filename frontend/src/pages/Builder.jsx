@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Sparkles, Rocket, Play, Pencil, ChevronDown, StickyNote, Wallet, Menu, X as Close } from "lucide-react";
-import { Keypair, VersionedTransaction } from "@solana/web3.js";
 import { cPost, cGet, relayGet, useExplore, useLibrary } from "@/lib/relay";
-import { useWallet, signInWithWallet, signTransaction } from "@/lib/walletStore";
+import { useWallet } from "@/lib/walletStore";
 import { BlockPreview, colorOf, codeForDef, programToTree, countNodes, toPlainEnglish, toBlocks, renderProgram, strip, pushInto, containsNode, findNode, insertAfter, newNode } from "@/components/blockyKit";
 import CATALOG from "@/data/blockCatalog.json";
 import { CodePadMark } from "@/components/Sidebar";
 import FamilyFlyout from "@/components/FamilyFlyout";
-import { TEMPLATE_NAME, makeTicker, uploadLogo } from "@/lib/templates";
+import LaunchWizard from "@/components/LaunchWizard";
+import { TEMPLATE_NAME, makeTicker } from "@/lib/templates";
 
 const EASE = [0.16, 1, 0.3, 1];
 let nextId = 1000;
@@ -48,16 +48,9 @@ export default function Builder() {
 
   const [name, setName] = useState("");
   const [ticker, setTicker] = useState("");
-  const [launching, setLaunching] = useState(false);
-  const [launchResult, setLaunchResult] = useState(null);
   const [showLaunch, setShowLaunch] = useState(false);
-  const [launchStep, setLaunchStep] = useState(null);
-  const [terms, setTerms] = useState(null);
-  const [tickerCount, setTickerCount] = useState(null);
-  const [balanceSol, setBalanceSol] = useState(null);
-  const [launchErr, setLaunchErr] = useState(null);
-  const pidRef = useRef(null);
   const autoBuilt = useRef(false);
+  const programTree = useRef(null); // tree that rawProgram was compiled into
 
   const { wallet, session } = useWallet();
   const { data: lib } = useLibrary();
@@ -105,6 +98,7 @@ export default function Builder() {
     const t = programToTree(program);
     setTree(t);
     setRawProgram(program);
+    programTree.current = t;
     setProjectName(`Remix of ${TEMPLATE_NAME}`);
     setName((n) => n || TEMPLATE_NAME);
     setTicker((tk) => tk || makeTicker(slug));
@@ -113,9 +107,6 @@ export default function Builder() {
     say(`template loaded: ${slug} — ${countNodes(t)} blocks`);
   }
 
-  useEffect(() => {
-    if (showLaunch && wallet && session && balanceSol == null) checkBalance(wallet);
-  }, [showLaunch, wallet, session]);
 
 
   // rail = all 15 block families in builder order (live via relay, bundled catalog until it lands)
@@ -270,7 +261,7 @@ export default function Builder() {
     say("checking with bolt…");
     try {
       const data = await cPost("/compile", { prompt: toPlainEnglish(tree) || sentence || "do nothing", coinTicker: ticker || undefined });
-      if (data.program) { setTree(programToTree(data.program)); setRawProgram(data.program); }
+      if (data.program) { const t = programToTree(data.program); programTree.current = t; setTree(t); setRawProgram(data.program); }
       say(`bolt checked it — ok`);
     } catch (e) {
       say(`bolt could not check: ${e.message}`);
@@ -291,7 +282,9 @@ export default function Builder() {
     try {
       const data = await cPost("/compile", { prompt: text, coinTicker: ticker || undefined });
       if (data.program) {
-        setTree(programToTree(data.program));
+        const t = programToTree(data.program);
+        programTree.current = t;
+        setTree(t);
         setRawProgram(data.program);
         say(`bolt built ${data.program.scripts?.length || 0} script(s) — no signup, no password`);
         if (data.explanation) say(`bolt: ${String(data.explanation).slice(0, 130)}`);
@@ -324,131 +317,20 @@ export default function Builder() {
     askBolt(next);
   }
 
-  const lam = (n) => (n == null || n === "" ? "—" : `${(Number(n) / 1e9).toFixed(4).replace(/0+$/, "").replace(/\.$/, "")} SOL`);
-
-  function projectId() {
-    if (pidRef.current) return pidRef.current;
+  // what gets launched = the user's CURRENT blocks: the compiled program if the canvas is unchanged since it was
+  // built (Bolt / remix), otherwise compile the blocks' plain English now (same /api/compile upstream uses)
+  async function resolveProgram() {
+    if (rawProgram && typeof rawProgram === "object" && rawProgram.scripts && programTree.current === tree) return rawProgram;
+    if (!tree.length) throw Error("Your canvas is empty — add blocks or ask bolt first.");
     try {
-      pidRef.current = localStorage.getItem("cpad:project-id") || crypto.randomUUID();
-      localStorage.setItem("cpad:project-id", pidRef.current);
-    } catch { pidRef.current = `pad-${Date.now()}`; }
-    return pidRef.current;
-  }
-
-  async function checkTicker(t) {
-    if (!t) { setTickerCount(null); return; }
-    try {
-      const d = await cGet(`coins/ticker?t=${encodeURIComponent(t)}`);
-      setTickerCount(typeof d?.count === "number" ? d.count : null);
-    } catch { setTickerCount(null); }
-  }
-
-  async function checkBalance(w) {
-    if (!w) return;
-    try {
-      const d = await cGet(`chain/balance?wallet=${w}`);
-      setBalanceSol(d?.sol ?? null);
-    } catch { setBalanceSol(null); }
-  }
-
-  const programPayload = () => (rawProgram && typeof rawProgram === "object" ? rawProgram : { scripts: [], ...(tree.length ? { loose: [] } : {}) });
-
-  async function launch() {
-    setLaunching(true);
-    setLaunchErr(null);
-    setLaunchResult(null);
-    const mint = Keypair.generate();
-    const mintAddr = mint.publicKey.toBase58();
-    try {
-      // 1 — wallet session (upstream signs us in through the relay)
-      setLaunchStep("wallet");
-      let w = wallet;
-      if (!w || !session) {
-        w = await signInWithWallet();
-        if (!w) throw Error("Wallet sign-in was cancelled — nothing was sent.");
-      }
-      say(`wallet in: ${w.slice(0, 4)}…${w.slice(-4)}`);
-
-      // 2 — live fee terms from upstream
-      setLaunchStep("terms");
-      try {
-        const t = await cPost("launch/terms", { program: programPayload(), ...(ticker ? { symbol: ticker } : {}) });
-        setTerms(t);
-        say(`terms in — launch fee ${lam(t?.launchFeeLamports ?? t?.totalLamports)}`);
-      } catch (e) { say(`terms: ${e.message} (launch continues)`); }
-
-      // 3 — coin picture: the CodePad mark, uploaded like upstream does (POST /api/images -> https url)
-      setLaunchStep("image");
-      let imageUrl = "";
-      try { imageUrl = await uploadLogo(); say("picture ready — CodePad mark"); }
-      catch (e) { throw Error(`could not upload the coin picture: ${e.message}`); }
-
-      // 4 — upstream builds the launch transaction for OUR coin key
-      setLaunchStep("tx");
-      const coinName = (name || projectName || TEMPLATE_NAME).trim().slice(0, 32);
-      const symbol = ((ticker || "").replace(/[^A-Za-z0-9]/g, "") || makeTicker(remix?.slug || coinName)).toUpperCase().slice(0, 10);
-      const slugify = (v) => String(v).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32) || "pad";
-      let txRes;
-      try {
-        txRes = await cPost(`projects/${projectId()}/launch`, {
-          mint: mintAddr,
-          program: programPayload(),
-          prompt: sentence || toPlainEnglish(tree) || undefined,
-          name: coinName,
-          symbol,
-          description: (sentence || toPlainEnglish(tree) || "").slice(0, 500),
-          imageUrl,
-          devBuyLamports: "0",
-          slug: slugify(symbol || coinName),
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        });
-      } catch (e) { throw Error(`launch refused by the network: ${e.message}`); }
-      if (!txRes?.txBase64) throw Error(txRes?.error || "the network sent no launch transaction — try again.");
-      say(`transaction ready${txRes.slug ? ` — slug ${txRes.slug}` : ""}`);
-
-      // 4 — the coin key co-signs, then YOUR wallet signs in Phantom
-      setLaunchStep("signing");
-      const vtx = VersionedTransaction.deserialize(Uint8Array.from(atob(txRes.txBase64), (c) => c.charCodeAt(0)));
-      vtx.sign([mint]);
-      const signed = await signTransaction(vtx);
-      const b64 = btoa(String.fromCharCode(...signed.serialize()));
-      say("signed by your wallet ✓");
-
-      // 5 — relay broadcasts it
-      setLaunchStep("sending");
-      const sent = await cPost(`projects/${projectId()}/send?mint=${mintAddr}&slug=${encodeURIComponent(txRes.slug || "")}`, { tx: b64 });
-      say(`broadcast — ${sent?.signature ? `sig ${String(sent.signature).slice(0, 12)}…` : "on chain"}`);
-
-      // 6 — register the coin on the pad
-      setLaunchStep("registering");
-      try { await cPost(`projects/${projectId()}/register`, { mint: mintAddr, slug: txRes.slug, signature: sent?.signature }); } catch (e) { say(`register: ${e.message}`); }
-
-      // 7 — watch it go live
-      setLaunchStep("status");
-      let st = null;
-      for (let i = 0; i < 60; i++) {
-        await new Promise((r) => setTimeout(r, 2500));
-        try {
-          st = await cGet(`projects/${projectId()}/status`);
-          if (st?.status && st.status !== "waiting") break;
-        } catch {}
-      }
-      const okSt = st?.status && ["live", "created", "locking"].includes(st.status);
-      if (!okSt) throw Error(st?.status ? `verification says: ${st.status}` : "could not verify the launch — check the log later.");
-      setLaunchResult({ ok: true, mint: mintAddr, slug: txRes?.slug, signature: sent?.signature, status: st.status });
-      setLaunchStep("live");
-      say(`LIVE — mint ${mintAddr.slice(0, 8)}… recorded by the portal`);
+      const d = await cPost("compile", { prompt: toPlainEnglish(tree), coinTicker: ticker || undefined });
+      if (!d?.program) throw Error("bolt could not turn these blocks into a program");
+      return d.program;
     } catch (e) {
-      setLaunchErr(e.message);
-      setLaunchStep("failed");
-      setLaunchResult({ ok: false, message: e.message });
-      say(`launch stopped: ${e.message}`);
-    } finally {
-      setLaunching(false);
+      throw Error(e.status === 409 ? `bolt needs one detail first: ${e.message} — answer it in the ask bar, then launch.` : e.message);
     }
   }
 
-  const signedIn = wallet && session;
 
   return (
     <div className="nbb-page min-h-screen">
@@ -699,119 +581,10 @@ export default function Builder() {
         </div>
       )}
 
-      {/* launch drawer — full upstream flow through the relay */}
-      {showLaunch && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4" data-testid="launch-drawer">
-          <div className="absolute inset-0 bg-black/70" onClick={() => !launching && setShowLaunch(false)} />
-          <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.3, ease: EASE }}
-            className="relative nbb-pill w-full max-w-md p-6 max-h-[92vh] overflow-y-auto" style={{ background: "#0E141D" }}>
-            <div className="flex items-center justify-between mb-4">
-              <p className="font-extrabold text-2xl">Ship your coin</p>
-              <button onClick={() => !launching && setShowLaunch(false)} data-testid="launch-close" className="font-bold text-fog hover:text-snow"><Close size={18} /></button>
-            </div>
-
-            <div className="flex items-center gap-3 mb-3" data-testid="launch-image">
-              <span className="w-14 h-14 rounded-xl bg-ink border-2 border-line grid place-items-center shrink-0" data-testid="launch-image-logo"><CodePadMark size={38} /></span>
-              <p className="font-mono text-[11px] text-fog leading-snug">coin picture: the CodePad mark — uploaded for you at launch</p>
-            </div>
-            <div className="space-y-3">
-              <input value={name} onChange={(e) => setName(e.target.value)} onBlur={(e) => checkTicker(e.target.value.trim())} data-testid="launch-name-input" placeholder="Coin name"
-                className="nbb-in w-full !h-11 !rounded-xl text-[15px]" />
-              <div className="relative">
-                <input value={ticker} onChange={(e) => { setTicker(e.target.value.toUpperCase()); setTickerCount(null); }}
-                  onBlur={(e) => checkTicker(e.target.value.trim())} data-testid="launch-ticker-input" placeholder="TICKER (optional)"
-                  className="nbb-in w-full !h-11 !rounded-xl text-[15px] font-mono uppercase" />
-                {tickerCount !== null && (
-                  <span className={`absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] px-2 py-0.5 rounded-md border ${tickerCount === 0 ? "text-mint border-mint/40 bg-mint/10" : "text-amber-300 border-amber-400/40 bg-amber-400/10"}`} data-testid="ticker-availability">
-                    {tickerCount === 0 ? "ticker free" : `used x${tickerCount}`}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {wallet && (
-              <p className="mt-3 font-mono text-[11px] text-fog" data-testid="launch-balance">
-                wallet {wallet.slice(0, 4)}…{wallet.slice(-4)} · balance <b className={balanceSol != null && balanceSol < 0.1 ? "text-red-300" : "text-mint"}>{balanceSol != null ? `${balanceSol} SOL` : "…"}</b>
-                {balanceSol != null && balanceSol < 0.1 && " — the launch fee is paid in SOL, top up first"}
-              </p>
-            )}
-
-            {terms && (
-              <div className="mt-4 rounded-xl border border-line bg-white/[0.03] p-4 font-mono text-[11px] space-y-1" data-testid="launch-terms">
-                <p className="uppercase tracking-[0.18em] text-fog mb-2">launch terms · live from the network</p>
-                {terms.launchFeeLamports != null && <p className="flex justify-between text-snow/90"><span>launch fee</span><span>{lam(terms.launchFeeLamports)}</span></p>}
-                {terms.seedLamports != null && <p className="flex justify-between text-snow/90"><span>seed</span><span>{lam(terms.seedLamports)}</span></p>}
-                {terms.pumpCreateLamports != null && <p className="flex justify-between text-snow/90"><span>coin account</span><span>{lam(terms.pumpCreateLamports)}</span></p>}
-                {terms.totalLamports != null && <p className="flex justify-between font-bold text-mint pt-1 border-t border-white/10"><span>total</span><span>{lam(terms.totalLamports)}</span></p>}
-              </div>
-            )}
-
-            {!signedIn ? (
-              <div className="mt-4 rounded-xl border border-mint/30 bg-mint/10 p-4" data-testid="launch-wallet-gate">
-                <p className="font-mono text-[12px] font-bold leading-relaxed text-snow/90">
-                  {wallet ? "one last step — sign the note in your wallet" : "connecting your wallet signs you in — nothing moves without your signature"}
-                </p>
-                <button onClick={() => signInWithWallet().then((w) => w && checkBalance(w))} data-testid="launch-signin-button"
-                  className="mt-3 w-full nbb-pill font-extrabold py-2.5 text-[15px] hover:border-mint/40 transition-colors">
-                  {wallet ? "Sign message" : "Connect wallet"}
-                </button>
-              </div>
-            ) : (
-              <p className="mt-4 font-mono text-[11px] text-mint" data-testid="launch-signed-in">signed in — your wallet signs, the relay does the rest</p>
-            )}
-
-            {launchStep && (
-              <div className="mt-4 font-mono text-[11px] space-y-1" data-testid="launch-steps">
-                {[
-                  ["wallet", "wallet sign-in"],
-                  ["terms", "live fee terms"],
-                  ["image", "coin picture (CodePad mark)"],
-                  ["tx", "building the launch transaction"],
-                  ["signing", "your wallet signs"],
-                  ["sending", "broadcasting"],
-                  ["registering", "registering the coin"],
-                  ["status", "waiting for the network…"],
-                ].map(([k, label]) => {
-                  const order = ["wallet", "terms", "image", "tx", "signing", "sending", "registering", "status", "live"];
-                  const idx = order.indexOf(launchStep);
-                  const mine = order.indexOf(k);
-                  const done = launchStep === "live" || idx > mine;
-                  return (
-                    <p key={k} className={`flex items-center gap-2 ${launchStep === k && launchStep !== "live" ? "text-mint" : done ? "text-snow/50" : "text-fog/50"}`}>
-                      {launchStep === k && launchStep !== "live" ? <span className="w-1.5 h-1.5 rounded-full bg-mint animate-blink" /> : done ? <span className="text-mint">✓</span> : <span className="w-1.5 h-1.5 rounded-full bg-white/20" />}
-                      {label}
-                    </p>
-                  );
-                })}
-              </div>
-            )}
-
-            <button onClick={launch} disabled={launching || !signedIn} data-testid="launch-button"
-              className="mt-4 flex items-center justify-center gap-2 w-full nbb-pill font-extrabold text-lg py-3.5 disabled:opacity-50 transition-colors"
-              style={{ background: "#63E6A9", color: "#0A0F16" }}>
-              <Rocket size={17} /> {launching ? "Launching…" : "Launch it"}
-            </button>
-
-            {launchErr && (
-              <div className="mt-4 rounded-xl border border-red-400/40 p-4 font-mono text-[11.5px] font-semibold leading-relaxed text-red-300"
-                style={{ background: "rgba(248,113,113,0.12)" }} data-testid="launch-error">
-                {launchErr}
-              </div>
-            )}
-            {launchResult?.ok && (
-              <div className="mt-4 rounded-xl border border-mint/40 p-4 font-mono text-[11.5px] font-semibold leading-relaxed" style={{ background: "#12261E" }} data-testid="launch-result">
-                <p className="text-mint font-bold">launched — status: {launchResult.status}</p>
-                <p className="mt-1 text-snow/80 break-all">mint {launchResult.mint}</p>
-                {launchResult.signature && <p className="mt-1 text-snow/60 break-all">sig {String(launchResult.signature).slice(0, 24)}…</p>}
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Link to={`/c/${launchResult.mint}`} data-testid="launch-result-coin" className="px-3 py-1.5 rounded-lg bg-mint text-[#0A0F16] font-bold">open its page</Link>
-                  <a href={`https://solscan.io/token/${launchResult.mint}`} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-lg border border-line text-snow/80 hover:text-mint transition-colors">solscan ↗</a>
-                </div>
-              </div>
-            )}
-          </motion.div>
-        </div>
-      )}
+      <LaunchWizard open={showLaunch} onClose={() => setShowLaunch(false)} wallet={wallet} session={session}
+        name={name} setName={setName} ticker={ticker} setTicker={setTicker} projectName={projectName} remixSlug={remix?.slug}
+        plainEnglish={toPlainEnglish(tree)} blockCount={blockCount} resolveProgram={resolveProgram} say={say}
+        onEditBlocks={() => setFlyout(false)} />
     </div>
   );
 }

@@ -150,10 +150,14 @@ async def main():
             await page.wait_for_timeout(1000)
             if await nodes(page): break
         drawer = await page.locator('[data-testid="launch-drawer"]').count()
-        nm = await page.input_value('[data-testid="launch-name-input"]') if drawer else ""
-        tk = await page.input_value('[data-testid="launch-ticker-input"]') if drawer else ""
-        check("&launch=1 opens the launch drawer", drawer == 1)
-        check("launch prefilled: name Template + made-up ticker + logo", nm == "Template" and len(tk) == 4 and tk.startswith("T") and await page.locator('[data-testid="launch-image-logo"]').count() == 1, f"name={nm} ticker={tk}")
+        check("&launch=1 opens the launch wizard on step 1", drawer == 1 and await page.locator('[data-testid="wizard-step-1"]').count() == 1)
+        for _ in range(16):
+            await page.wait_for_timeout(500)
+            if await page.locator('[data-testid="wizard-image"] img').count(): break
+        await page.locator('[data-testid="wizard-next"]').tap(); await page.wait_for_timeout(300)
+        nm = await page.input_value('[data-testid="launch-name-input"]') if await page.locator('[data-testid="launch-name-input"]').count() else ""
+        tk = await page.input_value('[data-testid="launch-ticker-input"]') if await page.locator('[data-testid="launch-ticker-input"]').count() else ""
+        check("launch prefilled: logo picture, name Template + made-up ticker", nm == "Template" and len(tk) == 4 and tk.startswith("T"), f"name={nm} ticker={tk}")
         check("blocks loaded behind the drawer", await nodes(page) > 0)
         await page.screenshot(path="/app/tests/e2e/shot_launch.png")
         await ctx.close()
@@ -185,7 +189,7 @@ async def main():
         for _ in range(12):
             await page.wait_for_timeout(1000)
             if await page.locator('[data-testid="launch-drawer"]').count() and await nodes(page): break
-        check("Launch this -> builder with template + launch drawer", "/builder?remix=llama-3&launch=1" in page.url and await page.locator('[data-testid="launch-drawer"]').count() == 1 and await nodes(page) > 0, page.url.split(".com")[-1])
+        check("Launch this -> builder with template + launch wizard", "/builder?remix=llama-3&launch=1" in page.url and await page.locator('[data-testid="wizard-step-1"]').count() == 1 and await nodes(page) > 0, page.url.split(".com")[-1])
         check("rules no page errors", not errs, str(errs[:3]))
         await ctx.close()
         await b.close()

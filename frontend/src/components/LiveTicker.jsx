@@ -1,16 +1,19 @@
-import { useLive, timeAgo } from "@/lib/relay";
+import { useLive, useLaunches, timeAgo } from "@/lib/relay";
 
-/** Live trade pulse band — same as the main pad's top ticker, relayed live. */
+/** Live trade pulse — ONLY trades on coins launched through CodePad (our ledger), never the upstream pad's coins. */
 export default function LiveTicker() {
   const { data } = useLive();
-  const items = (data?.items || []).slice(0, 12);
+  const { data: launches } = useLaunches();
+  const ours = new Set((launches?.launches || []).map((l) => String(l.mint).toLowerCase()));
+  const items = (data?.items || []).filter((t) => ours.has(String(t.href || "").split("/c/")[1]?.toLowerCase())).slice(0, 12);
+  const idle = "no trades on CodePad coins yet — launch one and its trades stream here";
 
   const row = (dup) =>
-    (items.length ? items : [{}, {}, {}, {}]).map((t, i) => {
+    (items.length ? items : [{}, {}]).map((t, i) => {
       const inner = (
         <>
-          <span className="font-mono text-[12px] text-fog">{t.text || "waiting for live trades…"}</span>
-          <span className="font-mono text-[11px] text-fog/50">{t.at ? timeAgo(t.at) : "now"}</span>
+          <span className="font-mono text-[12px] text-fog">{t.text || idle}</span>
+          <span className="font-mono text-[11px] text-fog/50">{t.at ? timeAgo(t.at) : ""}</span>
         </>
       );
       const cls = "inline-flex items-center gap-2.5 pr-10 shrink-0";
@@ -30,9 +33,6 @@ export default function LiveTicker() {
         <div className="flex">{row("a")}</div>
         <div className="flex" aria-hidden="true">{row("b")}</div>
       </div>
-      {!items.length && (
-        <div className="px-6 font-mono text-[12px] text-fog/60">waiting for live trades…</div>
-      )}
     </div>
   );
 }

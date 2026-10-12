@@ -90,3 +90,23 @@ export const timeAgo = (ts) => {
     if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
     return `${Math.floor(s / 86400)}d ago`;
 };
+
+/** CodePad's OWN numbers: coins launched through our portal (ledger) joined with their live explore cards.
+ *  Never upstream's platform totals or its flagship coin — zeros are honest until our first launch. */
+export const useOurLedger = () => {
+    const { data: launches, isLoading: l1 } = useLaunches();
+    const { data: explore, isLoading: l2 } = useExplore();
+    const ledger = launches?.launches || [];
+    const byMint = new Map((explore?.cards || []).map((c) => [String(c.mint || "").toLowerCase(), c]));
+    const coins = ledger.map((l) => ({ ...l, card: byMint.get(String(l.mint).toLowerCase()) || null }));
+    const newest = [...coins].sort((a, b) => (b.at || 0) - (a.at || 0))[0] || null;
+    return {
+        isLoading: l1 || l2,
+        count: ledger.length,
+        coins,
+        newest,
+        volumeSol: coins.reduce((s, c) => s + (Number(c.card?.volumeSol) || 0), 0),
+        trades: coins.reduce((s, c) => s + (Number(c.card?.trades) || 0), 0),
+        live: coins.filter((c) => c.card).length,
+    };
+};

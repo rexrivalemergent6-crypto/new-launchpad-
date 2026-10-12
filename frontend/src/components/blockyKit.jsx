@@ -209,7 +209,7 @@ function deleteBtn(node, ctx) {
   return (
     <button type="button" onClick={(e) => { e.stopPropagation(); ctx.setTree(strip(ctx.tree, node.id)); }} data-testid="block-delete"
       aria-label="remove block"
-      className="opacity-40 sm:opacity-0 group-hover/blk:opacity-60 hover:!opacity-100 transition-opacity text-ink shrink-0">
+      className="pz-del opacity-70 sm:opacity-0 group-hover/blk:opacity-80 hover:!opacity-100 transition-opacity shrink-0">
       <X size={13} strokeWidth={2.6} />
     </button>
   );
@@ -287,8 +287,8 @@ function renderFrame(node, ctx) {
                 onClick={(e) => { if (held(ctx, e, { mode: "into", node, branch: br.key })) return; e.stopPropagation(); ctx.setSel(selected ? null : { parentId: node.id, branch: br.key }); }}>
                 {armLabel && (
                   <>
-                    <span className="hidden sm:block font-mono text-[10.5px] font-bold text-ink/75 pl-1.5 pt-2.5">{armLabel}</span>
-                    <span className="sm:hidden block font-mono text-[9px] font-bold text-ink/75 [writing-mode:vertical-rl] rotate-180 mx-auto pt-1 pb-2">{armLabel}</span>
+                    <span className="hidden sm:block font-mono text-[10.5px] font-bold text-[var(--c)] pl-1.5 pt-2.5">{armLabel}</span>
+                    <span className="sm:hidden block font-mono text-[9px] font-bold text-[var(--c)] [writing-mode:vertical-rl] rotate-180 mx-auto pt-1 pb-2">{armLabel}</span>
                   </>
                 )}
               </div>
