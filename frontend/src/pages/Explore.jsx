@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import CoinCard from "@/components/CoinCard";
-import { useExplore, MAIN_BUILDER } from "@/lib/relay";
+import { useExplore } from "@/lib/relay";
 
 const EASE = [0.16, 1, 0.3, 1];
 

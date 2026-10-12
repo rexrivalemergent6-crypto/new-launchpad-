@@ -9,6 +9,8 @@ from fastapi import FastAPI, APIRouter, Request, Response
 from starlette.middleware.cors import CORSMiddleware
 import httpx
 
+import library_catalog
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -123,6 +125,34 @@ async def relay_img(image_id: str):
     cache_set(key, (r.content, ctype), TTL_IMG)
     return Response(content=r.content, media_type=ctype,
                     headers={"Cache-Control": "public, max-age=300"})
+
+
+TTL_LIBRARY = 600
+_LIBRARY_LAST_LIVE: dict = {}
+
+
+@api_router.get("/relay/library")
+async def relay_library():
+    """Every block in the Circuit block library: live from upstream /modules, merged
+    onto a verbatim snapshot of the builder's block spec (fallback if upstream is down)."""
+    cached = cache_get("library", TTL_LIBRARY)
+    if cached:
+        return cached
+    live = None
+    try:
+        r = await upstream("modules")
+        if r.status_code == 200:
+            live = library_catalog.parse_modules_html(r.text)
+    except Exception as e:
+        logger.warning(f"library live fetch/parse failed: {e}")
+    if live is None and _LIBRARY_LAST_LIVE.get("v"):
+        live = _LIBRARY_LAST_LIVE["v"]
+    elif live is not None:
+        _LIBRARY_LAST_LIVE["v"] = live
+    catalog = library_catalog.build_catalog(live)
+    catalog["fetchedAt"] = int(time.time() * 1000)
+    cache_set("library", catalog, TTL_LIBRARY if live else 60)
+    return catalog
 
 
 @api_router.get("/relay/{path:path}")

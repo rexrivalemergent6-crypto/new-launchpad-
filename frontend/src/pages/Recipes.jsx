@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
-import { useExplore, MAIN_BUILDER, mainHref } from "@/lib/relay";
+import { Link } from "react-router-dom";
+import { useExplore } from "@/lib/relay";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -91,15 +92,13 @@ export default function Recipes() {
               </div>
               <h3 className="mt-4 font-bold text-lg">{r.title}</h3>
               <p className="mt-2 text-sm text-fog leading-relaxed flex-1">“{r.s}”</p>
-              <a
-                href={liveMatch?.remix ? mainHref(liveMatch.remix) : MAIN_BUILDER}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to={`/builder?q=${encodeURIComponent(r.s)}`}
                 data-testid={`recipe-open-${i}`}
                 className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl border border-line hover:border-mint/50 hover:text-mint text-snow font-semibold py-2.5 text-sm transition-all duration-200"
               >
                 Open in builder <ArrowUpRight size={15} />
-              </a>
+              </Link>
             </motion.div>
           );
         })}

@@ -1,17 +1,32 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 
-const COLORS = {
+export const COLORS = {
   EV: "#D9A33C",
   LG: "#2DD4BF",
+  CT: "#5B8DEF",
+  DT: "#22D3EE",
+  ST: "#34D399",
+  AG: "#C084FC",
+  AI: "#F472B6",
+  WB: "#38BDF8",
+  MD: "#A78BFA",
+  WD: "#4ADE80",
   FN: "#E7C85F",
+  SK: "#A3E635",
+  BT: "#FB923C",
+  OP: "#F87171",
+  MO: "#CBD5E1",
 };
 
-export const Tag = ({ k }) => (
-  <span className="badge" style={{ color: COLORS[k], borderColor: COLORS[k], background: `${COLORS[k]}14` }}>
-    {k}
-  </span>
-);
+export const Tag = ({ k, color }) => {
+  const c = color || COLORS[k] || "#94A3B8";
+  return (
+    <span className="badge" style={{ color: c, borderColor: c, background: `${c}14` }}>
+      {k}
+    </span>
+  );
+};
 
 export const SelectPill = ({ children, accent }) => (
   <span className={`pill ${accent ? "pill-accent" : ""}`}>

@@ -25,6 +25,10 @@ export const useExplore = () =>
 export const useScoreboard = () =>
     useQuery({ queryKey: ["scoreboard"], queryFn: () => get("scoreboard"), refetchInterval: 60_000 });
 
+/** Full Circuit block library, relayed + parsed by our backend (/api/relay/library). */
+export const useLibrary = () =>
+    useQuery({ queryKey: ["library"], queryFn: () => get("library"), staleTime: 10 * 60_000, retry: 1 });
+
 /* ---- session relay (full wrapper: all actions go through our backend) ---- */
 
 export const aiPassword = {

@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import CoinCard from "@/components/CoinCard";
-import { useExplore, MAIN_BUILDER, mainHref } from "@/lib/relay";
+import { useExplore } from "@/lib/relay";
+
+const STOCK_RULE = "when creator fees arrive, buy tokenized NVDA with 50% of them and buy my coin back with the rest";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -29,14 +32,14 @@ export default function Stocks() {
           creator fees. They are two different things, and you can use either or both.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <a href={MAIN_BUILDER} target="_blank" rel="noopener noreferrer" data-testid="stocks-deploy-button"
+          <Link to={`/builder?q=${encodeURIComponent(STOCK_RULE)}`} data-testid="stocks-deploy-button"
             className="inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold px-6 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
             Launch a stock coin <ArrowUpRight size={16} />
-          </a>
-          <a href={mainHref("/pair")} target="_blank" rel="noopener noreferrer" data-testid="stocks-open-main"
+          </Link>
+          <Link to="/library?q=stock" data-testid="stocks-open-library"
             className="inline-flex items-center gap-2 rounded-xl border border-line hover:border-mint/40 font-medium px-6 py-3 transition-colors">
-            Full feature on Circuit <ArrowUpRight size={16} />
-          </a>
+            Stock blocks in the library <ArrowUpRight size={16} />
+          </Link>
         </div>
       </motion.div>
 

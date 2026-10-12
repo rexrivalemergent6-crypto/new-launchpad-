@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { ArrowUpRight, Flame } from "lucide-react";
-import { relayImg, useScoreboard, useStats, MAIN_BUILDER, fmtNum } from "@/lib/relay";
+import { relayImg, useScoreboard, useStats, fmtNum } from "@/lib/relay";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -89,10 +90,10 @@ export default function Flywheel() {
       <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, ease: EASE }}
         className="mt-14 border border-line rounded-2xl bg-panel p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
         <p className="text-fog max-w-md">Every coin you launch feeds the wheel. Launch one on pump.fun in a sentence.</p>
-        <a href={MAIN_BUILDER} target="_blank" rel="noopener noreferrer" data-testid="flywheel-deploy-button"
+        <Link to="/builder" data-testid="flywheel-deploy-button"
           className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold px-6 py-3.5 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
           Deploy a coin <ArrowUpRight size={17} />
-        </a>
+        </Link>
       </motion.div>
     </div>
   );

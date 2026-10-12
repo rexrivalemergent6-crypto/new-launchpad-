@@ -6,7 +6,7 @@ import Marquee from "@/components/Marquee";
 import StatStrip from "@/components/StatStrip";
 import CoinCard from "@/components/CoinCard";
 import { RuleStack, MiniBlock } from "@/components/blocks";
-import { useExplore, useScoreboard, MAIN_BUILDER, mainHref } from "@/lib/relay";
+import { useExplore, useScoreboard } from "@/lib/relay";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -269,13 +269,13 @@ export default function Home() {
             >
               Build it <ArrowRight size={18} />
             </button>
-            <button
+            <Link
+              to="/builder"
               data-testid="footer-blocks-button"
-              onClick={() => window.open(mainHref("/build?template=blank"), "_blank", "noopener")}
               className="inline-flex items-center gap-2 rounded-xl border border-line bg-panel hover:border-mint/40 font-medium text-lg px-8 py-4 transition-colors"
             >
               Build with blocks <ArrowUpRight size={18} />
-            </button>
+            </Link>
           </div>
 
           <div className="mt-20 pt-8 border-t border-line flex flex-col sm:flex-row items-center justify-between gap-4 text-left">
@@ -284,7 +284,7 @@ export default function Home() {
               circuit.dev — all data shown here is relayed live.
             </p>
             <div className="flex items-center gap-5 font-mono text-[11px] text-fog">
-              <a href={mainHref("/explore")} target="_blank" rel="noopener noreferrer" className="hover:text-mint transition-colors">main site ↗</a>
+              <Link to="/library" data-testid="footer-library-link" className="hover:text-mint transition-colors">block library</Link>
               <span>relay: <span className="text-mint">live</span></span>
             </div>
           </div>
