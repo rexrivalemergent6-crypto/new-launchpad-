@@ -6,7 +6,7 @@ import Marquee from "@/components/Marquee";
 import StatStrip from "@/components/StatStrip";
 import CoinCard from "@/components/CoinCard";
 import { RuleStack, MiniBlock } from "@/components/blocks";
-import { useExplore, useScoreboard, mainHref } from "@/lib/relay";
+import { useExplore, useScoreboard } from "@/lib/relay";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -23,9 +23,9 @@ const maskLine = (children, delay) => (
 );
 
 const TRY_ONE = [
-  "When the vault tops 1 SOL, half buys tokenized TSLA and half rains on holders.",
-  "If price doubles in a day, buy back 5% of supply from fees.",
-  "Every hour, tip one random holder 15% of the fee pot.",
+  "When the pot crosses 2 SOL, stack tokenized TSLA with half and gift the rest.",
+  "If the chart doubles in a day, buy back 5% of everything.",
+  "Once an hour, one random holder scoops 15% of the pot.",
 ];
 
 const MODULES = [
@@ -40,7 +40,7 @@ const MODULES = [
 const STEPS = [
   { n: "1", title: "Describe it", body: "One plain sentence, your own words, zero forms." },
   { n: "2", title: "Watch it build", body: "The sentence snaps apart into readable blocks you can tweak." },
-  { n: "3", title: "Ship it", body: "The coin lands on pump.fun and obeys its blocks on its own." },
+  { n: "3", title: "Ship it", body: "The coin lands on the open market and obeys its blocks on its own." },
 ];
 
 export default function Home() {
@@ -73,7 +73,7 @@ export default function Home() {
               className="inline-flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.22em] text-fog border border-line rounded-full px-4 py-2 bg-panel/70"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-mint animate-blink" />
-              the coin launcher, wrapped
+              coins that run themselves
             </motion.p>
 
             <h1 className="mt-7 font-extrabold tracking-[-0.035em] leading-[0.98] text-[clamp(2.6rem,7.5vw,6.4rem)]" data-testid="hero-title">
@@ -88,7 +88,7 @@ export default function Home() {
               className="mt-6 text-fog text-lg leading-relaxed max-w-full"
             >
               Describe your coin in a single line. Bolt breaks it into blocks, and the coin runs them on
-              its own — paid for entirely by its creator fees.
+              its own — paid for out of its own earnings.
             </motion.p>
 
             <motion.div
@@ -103,7 +103,7 @@ export default function Home() {
                   value={sentence}
                   onChange={(e) => setSentence(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && build()}
-                  placeholder="What should your coin do?"
+                  placeholder="Describe your coin in one line…"
                   className="flex-1 bg-transparent outline-none px-4 py-2.5 text-[15px] placeholder:text-fog/60 min-w-0"
                 />
                 <button
@@ -111,7 +111,7 @@ export default function Home() {
                   onClick={build}
                   className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold px-5 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)] active:scale-[0.97]"
                 >
-                  Build it <ArrowRight size={17} />
+                  Make it <ArrowRight size={17} />
                 </button>
               </div>
               <div className="mt-3 flex flex-wrap gap-2 min-w-0 max-w-lg">
@@ -158,7 +158,7 @@ export default function Home() {
         <StatStrip />
       </section>
 
-      {/* ============ BLOCK POWERS (templates, moved up) ============ */}
+      {/* ============ BLOCK POWERS ============ */}
       <section className="max-w-[1240px] mx-auto px-6 lg:px-10 pb-20 lg:pb-28">
         <div className="flex items-end justify-between gap-6 mb-10">
           <h2 className="text-3xl lg:text-5xl font-bold tracking-tight">What your rules can do</h2>
@@ -184,7 +184,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ FRESH OFF THE PAD ============ */}
+      {/* ============ FRESH COINS ============ */}
       <section className="max-w-[1240px] mx-auto px-6 lg:px-10 pb-20 lg:pb-28">
         <div className="flex items-end justify-between gap-6 mb-8">
           <h2 className="text-3xl lg:text-5xl font-bold tracking-tight">Fresh off the pad</h2>
@@ -220,12 +220,12 @@ export default function Home() {
             ))}
           </div>
           <div className="mt-10">
-            <MiniBlock tag="EV" color="#D9A33C">“When the vault tops 1 SOL, half buys tokenized TSLA and half rains on holders.”</MiniBlock>
+            <MiniBlock tag="EV" color="#D9A33C">“When the pot crosses 2 SOL, stack tokenized TSLA with half and gift the rest.”</MiniBlock>
           </div>
         </div>
       </section>
 
-      {/* ============ FLYWHEEL TEASER ============ */}
+      {/* ============ LOOP TEASER ============ */}
       <section className="border-t border-line bg-panel/40">
         <div className="max-w-[1240px] mx-auto px-6 lg:px-10 py-20 lg:py-28">
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">The loop that never stops</p>
@@ -267,7 +267,7 @@ export default function Home() {
               onClick={build}
               className="inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold text-lg px-8 py-4 transition-all duration-200 hover:shadow-[0_0_40px_rgba(74,222,128,0.4)] active:scale-[0.97]"
             >
-              Build it <ArrowRight size={18} />
+              Make it <ArrowRight size={18} />
             </button>
             <button
               data-testid="footer-blocks-button"
@@ -280,8 +280,8 @@ export default function Home() {
 
           <div className="mt-20 pt-8 border-t border-line flex flex-col sm:flex-row items-center justify-between gap-4 text-left">
             <p className="font-mono text-[11px] text-fog/80 max-w-md leading-relaxed">
-              CoinPad is its own front door to the circuit: your wallet signs, our relay does the running,
-              and every number you see streams in live.
+              CoinPad is its own front door: your wallet signs, our relay does the running, and every
+              number you see streams in live.
             </p>
             <div className="flex items-center gap-5 font-mono text-[11px] text-fog">
               <Link to="/library" className="hover:text-mint transition-colors">all 134 blocks</Link>

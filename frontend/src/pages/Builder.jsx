@@ -11,9 +11,9 @@ const CYCLES = [10, 25, 50, 75, 100];
 let nextId = 100;
 
 const STARTERS = [
-  "When the vault tops 1 SOL, half buys tokenized TSLA and half rains on holders.",
-  "If price doubles in a day, buy back 5% of supply from fees.",
-  "Every hour, tip one random holder 15% of the fee pot.",
+  "When the pot crosses 2 SOL, stack tokenized TSLA with half and gift the rest.",
+  "If the chart doubles in a day, buy back 5% of everything.",
+  "Once an hour, one random holder scoops 15% of the pot.",
 ];
 
 function EventRow({ onDelete }) {
@@ -21,7 +21,7 @@ function EventRow({ onDelete }) {
     <motion.div layout initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.35, ease: EASE }}
       className="blk blk-tab group inline-flex items-center gap-3 px-4 py-3 self-start" style={{ "--bc": "#D9A33C" }} data-testid="builder-block-event">
       <Tag k="EV" />
-      <span className="text-[15px] text-snow/90">when creator fees land</span>
+      <span className="text-[15px] text-snow/90">when the fee pot gets paid</span>
       {onDelete && <button onClick={onDelete} data-testid="block-delete" className="ml-2 opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity text-fog"><X size={14} /></button>}
     </motion.div>
   );
@@ -32,9 +32,9 @@ function LogicRow({ chance, onCycle, onDelete }) {
     <motion.div layout initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.35, ease: EASE }}
       className="blk group inline-flex items-center gap-3 px-4 py-3 self-start" style={{ "--bc": "#2DD4BF" }} data-testid="builder-block-logic">
       <Tag k="LG" />
-      <span className="text-[15px] text-snow/90">with</span>
+      <span className="text-[15px] text-snow/90">on</span>
       <NumPill v={chance} onCycle={onCycle} />
-      <span className="text-[15px] text-snow/90">% chance</span>
+      <span className="text-[15px] text-snow/90">% of runs</span>
       {onDelete && <button onClick={onDelete} data-testid="block-delete" className="ml-2 opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity text-fog"><X size={14} /></button>}
     </motion.div>
   );
@@ -45,24 +45,24 @@ function ActionGroup({ onDelete, chance, amt, onCycleChance, onCycleAmt }) {
     <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}
       className="blk blk-slot group flex flex-col gap-3 p-4 self-start w-full sm:w-auto sm:min-w-[460px] max-w-full" style={{ "--bc": "#2DD4BF" }} data-testid="builder-block-action">
       <div className="flex flex-col gap-3">
-        <span className="text-[15px] text-snow/90">do</span>
+        <span className="text-[15px] text-snow/90">then</span>
         <div className="blk blk-tab inline-flex flex-wrap items-center gap-2.5 px-4 py-3" style={{ "--bc": "#E7C85F" }}>
           <Tag k="FN" />
-          <span className="text-[15px] text-snow/90">airdrop a</span>
-          <SelectPill>fixed amount</SelectPill>
+          <span className="text-[15px] text-snow/90">send a</span>
+          <SelectPill>fixed slice</SelectPill>
           <NumPill v={amt} onCycle={onCycleAmt} />
           <span className="text-[15px] text-snow/90">% of</span>
-          <SelectPill accent>event amount</SelectPill>
-          <span className="text-[15px] text-snow/90">of</span>
+          <SelectPill accent>the pot</SelectPill>
+          <span className="text-[15px] text-snow/90">in</span>
           <TokenPill t="SOL" />
-          <span className="text-[15px] text-snow/90">to</span>
-          <SelectPill>all</SelectPill>
+          <span className="text-[15px] text-snow/90">to the</span>
+          <SelectPill>top</SelectPill>
           <AmtPill v={chance} />
           <span className="text-[15px] text-snow/90">holders</span>
           {onDelete && <button onClick={onDelete} data-testid="block-delete" className="opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity text-fog"><X size={14} /></button>}
         </div>
       </div>
-      <div className="text-[15px] text-snow/90 mt-1">otherwise</div>
+      <div className="text-[15px] text-snow/90 mt-1">failing that</div>
     </motion.div>
   );
 }
@@ -198,7 +198,7 @@ export default function Builder() {
             value={sentence}
             onChange={(e) => setSentence(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && askBolt()}
-            placeholder="What should your coin do?"
+            placeholder="Describe your coin in one line…"
             className="flex-1 bg-transparent outline-none px-4 py-2.5 text-[15px] placeholder:text-fog/60 min-w-0"
           />
           <button data-testid="builder-ask-bolt-button" onClick={askBolt} disabled={compiling || !sentence.trim()}
@@ -284,7 +284,7 @@ export default function Builder() {
 
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.36, ease: EASE }}
             className="border border-line rounded-2xl bg-panel p-6" data-testid="launch-panel">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">launch on pump.fun</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">ship your coin</p>
             <div className="space-y-3">
               <input value={name} onChange={(e) => setName(e.target.value)} data-testid="launch-name-input" placeholder="Coin name"
                 className="w-full bg-transparent border border-line rounded-xl px-4 py-2.5 text-sm outline-none focus:border-mint/50" />
@@ -347,12 +347,12 @@ export default function Builder() {
               </button>
               <button data-testid="palette-add-logic" onClick={() => add("logic")}
                 className="flex items-center justify-between border border-line rounded-xl px-4 py-3 hover:border-tealx/60 transition-colors text-left">
-                <span className="text-sm"><Tag k="LG" /> <span className="ml-2">with % chance (logic)</span></span>
+                <span className="text-sm"><Tag k="LG" /> <span className="ml-2">on % of runs (logic)</span></span>
                 <Plus size={15} className="text-fog" />
               </button>
               <button data-testid="palette-add-action" onClick={() => add("action")}
                 className="flex items-center justify-between border border-line rounded-xl px-4 py-3 hover:border-yel/60 transition-colors text-left">
-                <span className="text-sm"><Tag k="FN" /> <span className="ml-2">do / otherwise (action)</span></span>
+                <span className="text-sm"><Tag k="FN" /> <span className="ml-2">then / failing that (action)</span></span>
                 <Plus size={15} className="text-fog" />
               </button>
             </div>

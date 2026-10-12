@@ -60,7 +60,7 @@ export default function Scoreboard() {
 
       {isError && (
         <div className="mt-8 border border-red-400/30 bg-red-400/5 rounded-2xl p-6 font-mono text-sm text-red-300" data-testid="scoreboard-error">
-          relay hiccup — could not reach circuitdev.fun. try a refresh.
+          relay hiccup — the feed is napping. try a refresh.
         </div>
       )}
 

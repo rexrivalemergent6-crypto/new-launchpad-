@@ -49,7 +49,7 @@ export default function Recipes() {
         </h1>
         <p className="mt-3 text-fog max-w-lg">
           Proven rule-setups written our way. Send one straight to Bolt in the builder and your coin goes
-          live on pump.fun with the rules frozen on Solana.
+          live on the open market with the rules frozen in stone.
         </p>
       </motion.div>
 

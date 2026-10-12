@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
 import { ArrowUpRight, Flame } from "lucide-react";
-import { relayImg, useScoreboard, useStats, fmtNum } from "@/lib/relay";
+import { relayImg, useScoreboard, useStats, MAIN_BUILDER, fmtNum } from "@/lib/relay";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -10,24 +9,24 @@ export default function Flywheel() {
   const { data: stats } = useStats();
 
   const totals = [
-    { label: "Launch fee per coin", value: "0.05", unit: "SOL", fixed: true },
-    { label: "Paid to holders", value: board?.totals?.paidSol?.text, unit: "SOL" },
-    { label: "Bought back", value: board?.totals?.buybackSol?.text, unit: "SOL" },
-    { label: "In tokenized stocks", value: board?.totals?.stocksSol?.text, unit: "SOL" },
-    { label: "Payout events", value: board?.totals?.payouts?.text, unit: "" },
-    { label: "Coins doing things", value: board?.totals?.coins?.text, unit: "" },
+    { label: "Fee per launch", value: "0.05", unit: "SOL", fixed: true },
+    { label: "Sent to holders", value: board?.totals?.paidSol?.text, unit: "SOL" },
+    { label: "Repurchased", value: board?.totals?.buybackSol?.text, unit: "SOL" },
+    { label: "Into tokenized shares", value: board?.totals?.stocksSol?.text, unit: "SOL" },
+    { label: "Payout moments", value: board?.totals?.payouts?.text, unit: "" },
+    { label: "Coins at work", value: board?.totals?.coins?.text, unit: "" },
   ];
 
   return (
     <div className="max-w-[1240px] mx-auto px-6 lg:px-10 pt-28 lg:pt-14 pb-24">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: EASE }}>
-        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">the circuit flywheel</p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">the loop</p>
         <h1 className="mt-4 font-extrabold tracking-[-0.03em] text-[clamp(2.4rem,5vw,4.2rem)] leading-[1.05]">
-          Launch fees buy back <span className="text-mint">and burn Circuit.</span>
+          Launch fees circle back <span className="text-mint">as torch events.</span>
         </h1>
         <p className="mt-4 text-fog max-w-xl leading-relaxed">
-          Every coin launched here pays a 0.05 SOL launch fee. The team uses those fees to buy back the
-          Circuit coin and burn it — every burn is on Solana, done by hand.
+          Each launch carries a small on-chain fee. Those fees buy the flagship coin back on the open
+          market — and everything bought is torched for good, all verifiable on-chain.
         </p>
       </motion.div>
 
@@ -35,12 +34,12 @@ export default function Flywheel() {
         className="mt-10 border border-mint/25 rounded-3xl bg-gradient-to-br from-mint-deep/60 to-panel p-8 lg:p-12 dotgrid-fine" data-testid="flywheel-burn-card">
         <div className="flex items-center gap-3">
           <Flame size={20} className="text-mint" />
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">burned by the team</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">torched so far</p>
         </div>
         <div className="mt-4 font-mono text-5xl lg:text-7xl font-medium tabular text-snow" data-testid="flywheel-burned-total">
           {stats ? `${fmtNum(6600000)} $CIRCUIT` : "···"}
         </div>
-        <p className="mt-3 text-fog text-sm">6.6M $CIRCUIT burned with launch fees — every burn on Solana.</p>
+        <p className="mt-3 text-fog text-sm">every torch event is public and verifiable on-chain.</p>
       </motion.div>
 
       <div className="mt-10 grid grid-cols-2 lg:grid-cols-3 gap-4" data-testid="flywheel-totals">
@@ -62,7 +61,7 @@ export default function Flywheel() {
         ))}
       </div>
 
-      <h2 className="mt-16 text-2xl lg:text-4xl font-bold tracking-tight">Biggest burns</h2>
+      <h2 className="mt-16 text-2xl lg:text-4xl font-bold tracking-tight">Biggest torch events</h2>
       <div className="mt-6 space-y-3 max-w-2xl" data-testid="flywheel-burned-list">
         {(board?.lists?.burned || []).map((item, i) => (
           <motion.a
@@ -89,11 +88,11 @@ export default function Flywheel() {
 
       <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, ease: EASE }}
         className="mt-14 border border-line rounded-2xl bg-panel p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-        <p className="text-fog max-w-md">Every coin you launch feeds the wheel. Launch one on pump.fun in a sentence.</p>
-        <Link to="/builder" data-testid="flywheel-deploy-button"
+        <p className="text-fog max-w-md">Every launch feeds the loop. Ship yours with a single sentence.</p>
+        <a href="/builder" data-testid="flywheel-deploy-button"
           className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold px-6 py-3.5 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
           Deploy a coin <ArrowUpRight size={17} />
-        </Link>
+        </a>
       </motion.div>
     </div>
   );

@@ -1,8 +1,8 @@
 const ITEMS = [
-  "Launches on pump.fun",
-  "Rules locked on Solana",
-  "Runs on its own fees",
-  "Coins that stack tokenized stocks",
+  "Blocks that run themselves",
+  "Fees feed the loop",
+  "Stocks, burns, airdrops — on autopilot",
+  "Built once. Locked forever.",
   "One line in. A coin out.",
 ];
 

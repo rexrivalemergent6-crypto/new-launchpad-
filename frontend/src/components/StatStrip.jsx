@@ -7,7 +7,7 @@ export default function StatStrip() {
     { label: "Coins launched", value: data?.coins, fmt: (v) => fmtNum(v) },
     { label: "SOL traded", value: data?.volumeSol, fmt: (v) => fmtNum(v) },
     { label: "Trades", value: data?.trades, fmt: (v) => fmtNum(v) },
-    { label: "Circuit market cap", value: data?.official?.marketCapUsd, fmt: (v) => fmtUsd(v) },
+    { label: "Flagship coin cap", value: data?.official?.marketCapUsd, fmt: (v) => fmtUsd(v) },
   ];
 
   return (

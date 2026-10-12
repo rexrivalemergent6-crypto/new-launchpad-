@@ -64,7 +64,7 @@ function EventBlock({ delay }) {
       style={{ "--bc": COLORS.EV }}
     >
       <Tag k="EV" />
-      <span className="text-[15px] text-snow/90">when creator fees land</span>
+      <span className="text-[15px] text-snow/90">when the fee pot gets paid</span>
     </motion.div>
   );
 }
@@ -79,9 +79,9 @@ function LogicBlock({ delay, chance, onCycle }) {
       style={{ "--bc": COLORS.LG }}
     >
       <Tag k="LG" />
-      <span className="text-[15px] text-snow/90">with</span>
+      <span className="text-[15px] text-snow/90">on</span>
       <NumPill v={chance} onCycle={onCycle} />
-      <span className="text-[15px] text-snow/90">% chance</span>
+      <span className="text-[15px] text-snow/90">% of runs</span>
     </motion.div>
   );
 }
@@ -96,15 +96,15 @@ function ActionBar({ delay }) {
       style={{ "--bc": COLORS.FN }}
     >
       <Tag k="FN" />
-      <span className="text-[15px] text-snow/90">airdrop a</span>
-      <SelectPill>fixed amount</SelectPill>
+      <span className="text-[15px] text-snow/90">send a</span>
+      <SelectPill>fixed slice</SelectPill>
       <AmtPill v="50" />
       <span className="text-[15px] text-snow/90">% of</span>
-      <SelectPill accent>event amount</SelectPill>
+      <SelectPill accent>the pot</SelectPill>
       <span className="text-[15px] text-snow/90">of</span>
       <TokenPill t="SOL" />
       <span className="text-[15px] text-snow/90">to</span>
-      <SelectPill>all</SelectPill>
+      <SelectPill>top</SelectPill>
       <AmtPill v="10" />
       <span className="text-[15px] text-snow/90">holders</span>
     </motion.div>
@@ -144,10 +144,10 @@ export function RuleStack({ className = "" }) {
         style={{ "--bc": COLORS.LG }}
       >
         <div className="flex flex-col gap-3">
-          <span className="text-[15px] text-snow/90">do</span>
+          <span className="text-[15px] text-snow/90">then</span>
           <ActionBar delay={0.45} />
         </div>
-        <div className="text-[15px] text-snow/90 mt-1">otherwise</div>
+        <div className="text-[15px] text-snow/90 mt-1">failing that</div>
       </motion.div>
     </div>
   );

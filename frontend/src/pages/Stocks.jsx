@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import CoinCard from "@/components/CoinCard";
 import { useExplore } from "@/lib/relay";
 
-const STOCK_RULE = "when creator fees arrive, buy tokenized NVDA with 50% of them and buy my coin back with the rest";
+const STOCK_RULE = "when the coin collects fees, put half into tokenized NVDA and buy my coin back with the rest";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -28,8 +28,8 @@ export default function Stocks() {
           Coins that hold <span className="text-mint">the market.</span>
         </h1>
         <p className="mt-3 text-fog max-w-xl leading-relaxed">
-          Your coin can be priced in PUMP instead of SOL, and its rules can buy tokenized stocks with its
-          creator fees. They are two different things, and you can use either or both.
+          A coin can quote itself in PUMP rather than SOL — and its rules can spend the tip jar on
+          tokenized shares. Two independent switches: use either, or both.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link to={`/builder?q=${encodeURIComponent(STOCK_RULE)}`} data-testid="stocks-deploy-button"
@@ -60,7 +60,7 @@ export default function Stocks() {
         ))}
       </div>
 
-      <h2 className="mt-16 text-2xl lg:text-4xl font-bold tracking-tight">Coins buying stocks with fees</h2>
+      <h2 className="mt-16 text-2xl lg:text-4xl font-bold tracking-tight">Coins stacking shares right now</h2>
       <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-testid="stocks-coins-grid">
         {cards.map((c, i) => (
           <CoinCard key={c.slug || i} coin={c} index={i} />
