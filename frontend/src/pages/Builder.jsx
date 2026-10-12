@@ -21,7 +21,7 @@ function EventRow({ onDelete }) {
     <motion.div layout initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.35, ease: EASE }}
       className="blk blk-tab group inline-flex items-center gap-3 px-4 py-3 self-start" style={{ "--bc": "#D9A33C" }} data-testid="builder-block-event">
       <Tag k="EV" />
-      <span className="text-[15px] text-snow/90">when creator fees arrive</span>
+      <span className="text-[15px] text-snow/90">when creator fees land</span>
       {onDelete && <button onClick={onDelete} data-testid="block-delete" className="ml-2 opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity text-fog"><X size={14} /></button>}
     </motion.div>
   );
@@ -134,7 +134,7 @@ export default function Builder() {
   const add = (kind) => setBlocks((b) => [...b, { id: nextId++, kind }]);
   const remove = (id) => setBlocks((b) => b.filter((x) => x.id !== id));
 
-  async function askChip() {
+  async function askBolt() {
     if (!sentence.trim()) return;
     setCompiling(true);
     setCompileError(null);
@@ -153,7 +153,7 @@ export default function Builder() {
   function savePassword() {
     aiPassword.set(password.trim());
     setNeedPassword(false);
-    askChip();
+    askBolt();
   }
 
   async function launch() {
@@ -197,17 +197,17 @@ export default function Builder() {
             data-testid="builder-sentence-input"
             value={sentence}
             onChange={(e) => setSentence(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && askChip()}
+            onKeyDown={(e) => e.key === "Enter" && askBolt()}
             placeholder="What should your coin do?"
             className="flex-1 bg-transparent outline-none px-4 py-2.5 text-[15px] placeholder:text-fog/60 min-w-0"
           />
-          <button data-testid="builder-ask-chip-button" onClick={askChip} disabled={compiling || !sentence.trim()}
+          <button data-testid="builder-ask-bolt-button" onClick={askBolt} disabled={compiling || !sentence.trim()}
             className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold px-5 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)] active:scale-[0.97] disabled:opacity-40">
-            <Sparkles size={16} /> {compiling ? "Chip is thinking…" : "Ask Chip"}
+            <Sparkles size={16} /> {compiling ? "Bolt is thinking…" : "Ask Bolt"}
           </button>
         </div>
         <p className="mt-3 font-mono text-[11px] text-fog">
-          chip reads your line and snaps it into blocks — the whole thing runs through coinpad's relay
+          bolt reads your line and snaps it into blocks — the whole thing runs through coinpad's relay
         </p>
       </motion.div>
 
@@ -256,7 +256,7 @@ export default function Builder() {
                   return <ActionGroup key={b.id} chance={chance} amt={amt} onCycleChance={cycle(setChance, chance)} onCycleAmt={cycle(setAmt, amt)} onDelete={() => remove(b.id)} />;
                 })}
                 {blocks.length === 0 && (
-                  <p className="text-fog font-mono text-sm py-16 text-center">empty canvas — ask chip, or grab a block from the shelf</p>
+                  <p className="text-fog font-mono text-sm py-16 text-center">empty canvas — ask bolt, or grab a block from the shelf</p>
                 )}
               </>
             )}

@@ -41,7 +41,7 @@ const partText = (p) => {
   return p.v != null && p.v !== "" ? String(p.v) : p.n;
 };
 
-/** Plain sentence of the block with its default values — what we hand to Chip. */
+/** Plain sentence of the block with its default values — what we hand to Bolt. */
 const sentenceOf = (b) => {
   const rows = (b.rows || []).filter((r) => !r.advanced);
   if (!rows.length) return b.sentence || b.label;
@@ -167,7 +167,7 @@ function BlockCard({ b, code, moduleName }) {
           data-testid={`library-ask-chip-${slug}`}
           className="inline-flex items-center gap-1 text-[12px] font-semibold text-mint hover:text-mint-bright transition-colors"
         >
-          Ask Chip for this <ArrowUpRight size={14} />
+          Ask Bolt for this <ArrowUpRight size={14} />
         </Link>
       </div>
     </div>
@@ -264,7 +264,7 @@ export default function Library() {
         </h1>
         <p className="mt-3 text-fog max-w-2xl">
           All {cat.total} blocks across {cat.categories.length} families — what each one does, what it asks for, and
-          whether it runs for real on a launched coin. Tap <span className="text-mint">Ask Chip</span> on any block to start a rule with it.
+          whether it runs for real on a launched coin. Tap <span className="text-mint">Ask Bolt</span> on any block to start a rule with it.
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-2 font-mono text-[11px]" data-testid="library-stats">
           <span className="px-2.5 py-1 rounded-lg border border-line bg-panel"><b className="text-snow">{cat.total}</b> <span className="text-fog">blocks</span></span>
@@ -328,7 +328,7 @@ export default function Library() {
         {!visible.length && (
           <div className="border border-line rounded-2xl bg-panel p-10 text-center text-fog" data-testid="library-empty">
             No block matches “{query}”. Try a different word — or{" "}
-            <Link to={`/builder?q=${encodeURIComponent(query)}`} className="text-mint hover:underline" data-testid="library-empty-ask-chip">ask Chip to build it</Link>.
+            <Link to={`/builder?q=${encodeURIComponent(query)}`} className="text-mint hover:underline" data-testid="library-empty-ask-chip">ask Bolt to build it</Link>.
           </div>
         )}
       </div>

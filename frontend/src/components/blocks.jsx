@@ -64,7 +64,7 @@ function EventBlock({ delay }) {
       style={{ "--bc": COLORS.EV }}
     >
       <Tag k="EV" />
-      <span className="text-[15px] text-snow/90">when creator fees arrive</span>
+      <span className="text-[15px] text-snow/90">when creator fees land</span>
     </motion.div>
   );
 }

@@ -87,7 +87,7 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.5, ease: EASE }}
               className="mt-6 text-fog text-lg leading-relaxed max-w-full"
             >
-              Describe your coin in a single line. Chip breaks it into blocks, and the coin runs them on
+              Describe your coin in a single line. Bolt breaks it into blocks, and the coin runs them on
               its own — paid for entirely by its creator fees.
             </motion.p>
 

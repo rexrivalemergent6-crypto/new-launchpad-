@@ -48,7 +48,7 @@ export default function Recipes() {
           22 blueprints <span className="text-mint">for your coin.</span>
         </h1>
         <p className="mt-3 text-fog max-w-lg">
-          Proven rule-setups written our way. Send one straight to Chip in the builder and your coin goes
+          Proven rule-setups written our way. Send one straight to Bolt in the builder and your coin goes
           live on pump.fun with the rules frozen on Solana.
         </p>
       </motion.div>
@@ -96,7 +96,7 @@ export default function Recipes() {
                 data-testid={`recipe-open-${i}`}
                 className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl border border-line hover:border-mint/50 hover:text-mint text-snow font-semibold py-2.5 text-sm transition-all duration-200"
               >
-                Send to Chip
+                Send to Bolt
               </Link>
             </motion.div>
           );

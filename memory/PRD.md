@@ -32,6 +32,7 @@
 - P2: watchlist (localStorage), share cards, auto-refresh ticker band
 
 ## Copy originality pass (2026-10-12)
+- AI character renamed Chip → Bolt across every surface (Ask Bolt, Bolt is thinking…, Send to Bolt, library "Ask Bolt for this"); decorative canvas label reworded to "when creator fees land". Relayed block-catalog labels stay verbatim — that is live product data, not copy.
 - All static copy rewritten in our own voice: tagline "One line in. A coin out.", all section headings, how-it-works steps, module blurbs, family descriptions, stocks/flywheel/explore/scoreboard texts, footer.
 - All 22 recipes paraphrased (original titles + sentences, same rule meanings); hero chips + builder starter ideas are original examples.
 - Templates relocated: block-powers section moved above the coins grid on Home; starter-ideas panel moved to the top of the Builder side column.
