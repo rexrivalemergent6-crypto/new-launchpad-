@@ -1,8 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Plus, X, ArrowRight } from "lucide-react";
+import { ArrowUpRight, Plus, X, ArrowRight, Sparkles, Rocket, KeyRound } from "lucide-react";
 import { Tag, SelectPill, NumPill, AmtPill, TokenPill } from "@/components/blocks";
-import { useExplore, MAIN_BUILDER, MAIN_START } from "@/lib/relay";
+import { cPost, aiPassword, useExplore } from "@/lib/relay";
+import { useWallet, signInWithWallet } from "@/lib/walletStore";
 
 const EASE = [0.16, 1, 0.3, 1];
 const CYCLES = [10, 25, 50, 75, 100];
@@ -65,7 +67,30 @@ function ActionGroup({ onDelete, chance, amt, onCycleChance, onCycleAmt }) {
   );
 }
 
+function CompiledBlock({ label, value, i }) {
+  return (
+    <motion.div layout initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, delay: i * 0.05, ease: EASE }}
+      className="blk blk-tab inline-flex items-center gap-3 px-4 py-3 self-start max-w-full" style={{ "--bc": "#E7C85F" }} data-testid={`compiled-block-${i}`}>
+      <Tag k="FN" />
+      <span className="font-mono text-[13px] text-yel shrink-0">{label}</span>
+      <span className="font-mono text-[12px] text-snow/80 break-all line-clamp-2">{value}</span>
+    </motion.div>
+  );
+}
+
+function toBlocks(data) {
+  if (!data || typeof data !== "object") return [];
+  if (Array.isArray(data.rules)) {
+    return data.rules.map((r, i) => ({ label: r?.op || r?.type || `rule ${i + 1}`, value: JSON.stringify(r) }));
+  }
+  return Object.entries(data)
+    .filter(([, v]) => v != null)
+    .slice(0, 8)
+    .map(([k, v]) => ({ label: k, value: typeof v === "string" ? v : JSON.stringify(v).slice(0, 160) }));
+}
+
 export default function Builder() {
+  const [params] = useSearchParams();
   const [blocks, setBlocks] = useState([
     { id: 1, kind: "event" },
     { id: 2, kind: "logic" },
@@ -73,13 +98,33 @@ export default function Builder() {
   ]);
   const [chance, setChance] = useState(50);
   const [amt, setAmt] = useState(10);
-  const [sentence, setSentence] = useState("");
-  const { data: explore } = useExplore();
+  const [sentence, setSentence] = useState(params.get("q") || "");
 
-  const count = useMemo(
+  const [compiling, setCompiling] = useState(false);
+  const [compiled, setCompiled] = useState(null);
+  const [compileError, setCompileError] = useState(null);
+  const [needPassword, setNeedPassword] = useState(false);
+  const [password, setPassword] = useState("");
+
+  const [name, setName] = useState("");
+  const [ticker, setTicker] = useState("");
+  const [launching, setLaunching] = useState(false);
+  const [launchResult, setLaunchResult] = useState(null);
+
+  const { data: explore } = useExplore();
+  const { wallet, session } = useWallet();
+
+  useEffect(() => {
+    const q = params.get("q");
+    if (q) setSentence(q);
+  }, [params]);
+
+  const paletteCount = useMemo(
     () => blocks.reduce((n, b) => n + (b.kind === "action" ? 3 : 1), 0),
     [blocks]
   );
+  const compiledBlocks = useMemo(() => toBlocks(compiled), [compiled]);
+  const blockCount = compiled ? Math.max(compiledBlocks.length, 1) : paletteCount;
 
   const cycle = (setter, val) => () => {
     const i = CYCLES.indexOf(val);
@@ -88,6 +133,44 @@ export default function Builder() {
 
   const add = (kind) => setBlocks((b) => [...b, { id: nextId++, kind }]);
   const remove = (id) => setBlocks((b) => b.filter((x) => x.id !== id));
+
+  async function askChip() {
+    if (!sentence.trim()) return;
+    setCompiling(true);
+    setCompileError(null);
+    setNeedPassword(false);
+    try {
+      const data = await cPost("/compile", { prompt: sentence.trim(), coinTicker: ticker || undefined });
+      setCompiled(data);
+    } catch (e) {
+      if (e.status === 401) setNeedPassword(true);
+      setCompileError(e.message);
+    } finally {
+      setCompiling(false);
+    }
+  }
+
+  function savePassword() {
+    aiPassword.set(password.trim());
+    setNeedPassword(false);
+    askChip();
+  }
+
+  async function launch() {
+    setLaunching(true);
+    setLaunchResult(null);
+    try {
+      const payload = { name: name || undefined, ticker: ticker || undefined, prompt: sentence || undefined, ...(compiled && typeof compiled === "object" ? compiled : {}) };
+      const data = await cPost("/coins", payload);
+      setLaunchResult({ ok: true, data });
+    } catch (e) {
+      setLaunchResult({ ok: false, message: e.message, data: e.data });
+    } finally {
+      setLaunching(false);
+    }
+  }
+
+  const signedIn = wallet && session;
 
   const proof = useMemo(() => {
     const cards = explore?.cards || [];
@@ -98,8 +181,6 @@ export default function Builder() {
       { label: "that burn", value: cards.filter((c) => (c.does || []).includes("burns")).length },
     ];
   }, [explore]);
-
-  const build = () => window.open(MAIN_BUILDER, "_blank", "noopener");
 
   return (
     <div className="max-w-[1240px] mx-auto px-6 lg:px-10 pt-28 lg:pt-14 pb-24">
@@ -116,36 +197,68 @@ export default function Builder() {
             data-testid="builder-sentence-input"
             value={sentence}
             onChange={(e) => setSentence(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && build()}
+            onKeyDown={(e) => e.key === "Enter" && askChip()}
             placeholder="What should your coin do?"
             className="flex-1 bg-transparent outline-none px-4 py-2.5 text-[15px] placeholder:text-fog/60 min-w-0"
           />
-          <button data-testid="builder-build-button" onClick={build}
-            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold px-5 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)] active:scale-[0.97]">
-            Build it <ArrowRight size={17} />
+          <button data-testid="builder-ask-chip-button" onClick={askChip} disabled={compiling || !sentence.trim()}
+            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold px-5 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)] active:scale-[0.97] disabled:opacity-40">
+            <Sparkles size={16} /> {compiling ? "Chip is thinking…" : "Ask Chip"}
           </button>
         </div>
         <p className="mt-3 font-mono text-[11px] text-fog">
-          the real build & deploy runs on <a className="text-mint hover:underline" href={MAIN_BUILDER} target="_blank" rel="noopener noreferrer">circuitdev.fun ↗</a> — this canvas is a live preview of how your sentence becomes blocks
+          chip turns your sentence into blocks — relayed live through coinpad, no account needed anywhere else
         </p>
       </motion.div>
+
+      {needPassword && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: EASE }}
+          className="mt-5 max-w-2xl border border-yel/40 bg-yel/5 rounded-2xl p-5" data-testid="ai-password-panel">
+          <p className="flex items-center gap-2 font-mono text-[12px] text-yel"><KeyRound size={14} /> circuit asked for the AI password</p>
+          <div className="mt-3 flex gap-2">
+            <input value={password} onChange={(e) => setPassword(e.target.value)} data-testid="ai-password-input" type="password" placeholder="AI password"
+              className="flex-1 bg-transparent border border-line rounded-xl px-4 py-2.5 text-sm outline-none focus:border-yel/60" />
+            <button onClick={savePassword} data-testid="ai-password-save" className="rounded-xl bg-yel/90 hover:bg-yel text-[#221a04] font-bold px-5 text-sm transition-colors">Save & retry</button>
+          </div>
+        </motion.div>
+      )}
+
+      {compileError && !needPassword && (
+        <div className="mt-5 max-w-2xl border border-red-400/30 bg-red-400/5 rounded-2xl p-4 font-mono text-[12px] text-red-300" data-testid="compile-error">
+          {compileError}
+        </div>
+      )}
 
       <div className="mt-10 grid lg:grid-cols-[1.5fr_1fr] gap-6 items-start">
         {/* canvas */}
         <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2, ease: EASE }}
           className="relative dotgrid border border-line rounded-3xl bg-[#0C1219]/80 p-6 sm:p-8 min-h-[480px] overflow-hidden" data-testid="builder-canvas">
           <div className="absolute top-5 right-5 font-mono text-lg px-5 py-2.5 rounded-xl border border-line bg-panel/90" data-testid="builder-block-count">
-            {count} blocks
+            {blockCount} blocks
           </div>
 
           <div className="mt-10 flex flex-col gap-4">
-            {blocks.map((b) => {
-              if (b.kind === "event") return <EventRow key={b.id} onDelete={() => remove(b.id)} />;
-              if (b.kind === "logic") return <LogicRow key={b.id} chance={chance} onCycle={cycle(setChance, chance)} onDelete={() => remove(b.id)} />;
-              return <ActionGroup key={b.id} chance={chance} amt={amt} onCycleChance={cycle(setChance, chance)} onCycleAmt={cycle(setAmt, amt)} onDelete={() => remove(b.id)} />;
-            })}
-            {blocks.length === 0 && (
-              <p className="text-fog font-mono text-sm py-16 text-center">empty canvas — snap a block from the palette</p>
+            {compiled ? (
+              <>
+                <EventRow />
+                {compiledBlocks.map((b, i) => (
+                  <CompiledBlock key={`${b.label}-${i}`} label={b.label} value={b.value} i={i} />
+                ))}
+                <button onClick={() => setCompiled(null)} data-testid="clear-compiled" className="self-start font-mono text-[11px] text-fog hover:text-mint transition-colors mt-2">
+                  ← back to blank canvas
+                </button>
+              </>
+            ) : (
+              <>
+                {blocks.map((b) => {
+                  if (b.kind === "event") return <EventRow key={b.id} onDelete={() => remove(b.id)} />;
+                  if (b.kind === "logic") return <LogicRow key={b.id} chance={chance} onCycle={cycle(setChance, chance)} onDelete={() => remove(b.id)} />;
+                  return <ActionGroup key={b.id} chance={chance} amt={amt} onCycleChance={cycle(setChance, chance)} onCycleAmt={cycle(setAmt, amt)} onDelete={() => remove(b.id)} />;
+                })}
+                {blocks.length === 0 && (
+                  <p className="text-fog font-mono text-sm py-16 text-center">empty canvas — ask chip, or snap a block from the palette</p>
+                )}
+              </>
             )}
           </div>
         </motion.div>
@@ -153,6 +266,77 @@ export default function Builder() {
         {/* side column */}
         <div className="space-y-5">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3, ease: EASE }}
+            className="border border-line rounded-2xl bg-panel p-6" data-testid="launch-panel">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">launch on pump.fun</p>
+            <div className="space-y-3">
+              <input value={name} onChange={(e) => setName(e.target.value)} data-testid="launch-name-input" placeholder="Coin name"
+                className="w-full bg-transparent border border-line rounded-xl px-4 py-2.5 text-sm outline-none focus:border-mint/50" />
+              <input value={ticker} onChange={(e) => setTicker(e.target.value)} data-testid="launch-ticker-input" placeholder="Ticker (e.g. PAD)"
+                className="w-full bg-transparent border border-line rounded-xl px-4 py-2.5 text-sm outline-none focus:border-mint/50 font-mono" />
+            </div>
+
+            {!signedIn && (
+              <div className="mt-4 border border-yel/30 bg-yel/5 rounded-xl p-4" data-testid="launch-wallet-gate">
+                <p className="font-mono text-[11px] text-yel leading-relaxed">
+                  {wallet ? "one more step — sign the message in your wallet to unlock launching" : "connecting your wallet signs you in — nothing leaves your wallet without your signature"}
+                </p>
+                <button onClick={() => signInWithWallet()} data-testid="launch-signin-button"
+                  className="mt-3 w-full rounded-xl border border-yel/50 text-yel hover:bg-yel/10 font-semibold py-2.5 text-sm transition-colors">
+                  {wallet ? "Sign message" : "Connect wallet"}
+                </button>
+              </div>
+            )}
+
+            <button onClick={launch} disabled={launching || !signedIn} data-testid="launch-button"
+              className="mt-4 flex items-center justify-center gap-2 w-full rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold py-3.5 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)] disabled:opacity-40">
+              <Rocket size={16} /> {launching ? "Launching…" : "Launch it"}
+            </button>
+
+            {launchResult && (
+              <div className={`mt-4 rounded-xl p-4 font-mono text-[11px] leading-relaxed ${launchResult.ok ? "border border-mint/40 bg-mint/5 text-mint" : "border border-red-400/30 bg-red-400/5 text-red-300"}`}
+                data-testid="launch-result">
+                {launchResult.ok ? (
+                  <>
+                    launched ✓ {launchResult.data?.mint || launchResult.data?.url || JSON.stringify(launchResult.data).slice(0, 220)}
+                  </>
+                ) : (
+                  <>upstream said: {launchResult.message}{launchResult.data ? ` — ${JSON.stringify(launchResult.data).slice(0, 220)}` : ""}</>
+                )}
+              </div>
+            )}
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.38, ease: EASE }}
+            className="border border-line rounded-2xl bg-panel p-6" data-testid="live-proof">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">on circuit right now · relayed</p>
+            <div className="grid grid-cols-2 gap-4">
+              {proof.map((p, i) => (
+                <div key={p.label}>
+                  <div className="font-mono text-3xl tabular text-mint" data-testid={`proof-stat-${i}`}>{p.value}</div>
+                  <div className="font-mono text-[10px] text-fog mt-1">{p.label}</div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.46, ease: EASE }}
+            className="border border-line rounded-2xl bg-panel p-6">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">try a recipe</p>
+            <div className="space-y-2">
+              {RECIPES.map((r, i) => (
+                <Link key={i} data-testid={`recipe-fill-${i}`} to={`/builder?q=${encodeURIComponent(r)}`}
+                  className="block text-sm text-fog hover:text-snow border border-line rounded-xl px-4 py-3 hover:border-mint/40 transition-colors leading-relaxed">
+                  {r}
+                </Link>
+              ))}
+            </div>
+            <Link data-testid="builder-all-recipes" to="/recipes"
+              className="mt-4 flex items-center justify-center gap-2 w-full rounded-xl border border-line hover:border-mint/40 hover:text-mint text-fog font-semibold py-3 transition-colors text-sm">
+              All 22 recipes
+            </Link>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.52, ease: EASE }}
             className="border border-line rounded-2xl bg-panel p-6">
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">block palette</p>
             <div className="flex flex-col gap-2.5">
@@ -172,40 +356,6 @@ export default function Builder() {
                 <Plus size={15} className="text-fog" />
               </button>
             </div>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.38, ease: EASE }}
-            className="border border-line rounded-2xl bg-panel p-6" data-testid="live-proof">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">on circuit right now · relayed</p>
-            <div className="grid grid-cols-2 gap-4">
-              {proof.map((p, i) => (
-                <div key={p.label}>
-                  <div className="font-mono text-3xl tabular text-mint" data-testid={`proof-stat-${i}`}>{p.value}</div>
-                  <div className="font-mono text-[10px] text-fog mt-1">{p.label}</div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.46, ease: EASE }}
-            className="border border-line rounded-2xl bg-panel p-6">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">recipes</p>
-            <div className="space-y-2">
-              {RECIPES.map((r, i) => (
-                <a key={i} data-testid={`recipe-${i}`} href={MAIN_START} target="_blank" rel="noopener noreferrer"
-                  className="block text-sm text-fog hover:text-snow border border-line rounded-xl px-4 py-3 hover:border-mint/40 transition-colors leading-relaxed">
-                  {r}
-                </a>
-              ))}
-            </div>
-            <a data-testid="builder-open-main" href={MAIN_BUILDER} target="_blank" rel="noopener noreferrer"
-              className="mt-5 flex items-center justify-center gap-2 w-full rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold py-3.5 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
-              Deploy a coin <ArrowUpRight size={17} />
-            </a>
-            <a data-testid="builder-all-recipes" href="/recipes"
-              className="mt-2 flex items-center justify-center gap-2 w-full rounded-xl border border-line hover:border-mint/40 hover:text-mint text-fog font-semibold py-3 transition-colors text-sm">
-              All 22 recipes
-            </a>
           </motion.div>
         </div>
       </div>

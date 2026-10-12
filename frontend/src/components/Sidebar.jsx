@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X, ArrowUpRight, Wallet } from "lucide-react";
-import { useStats, MAIN_BUILDER, mainHref } from "@/lib/relay";
+import { Menu, X, Wallet } from "lucide-react";
+import { useStats } from "@/lib/relay";
+import { useWallet, signInWithWallet } from "@/lib/walletStore";
 
 export const Logo = ({ small }) => (
   <span className="inline-flex items-center gap-2.5 select-none">
@@ -50,17 +51,6 @@ function NavItems({ onPick }) {
           </Link>
         );
       })}
-      <a
-        href={mainHref("/modules")}
-        target="_blank"
-        rel="noopener noreferrer"
-        data-testid="nav-main-site"
-        onClick={onPick}
-        className="px-5 py-3 rounded-xl text-[19px] text-fog hover:text-snow hover:bg-white/5 transition-colors duration-200 flex items-center justify-between"
-      >
-        Main site
-        <ArrowUpRight size={15} className="opacity-40" />
-      </a>
     </nav>
   );
 }
@@ -70,7 +60,48 @@ function RelayStatus() {
   return (
     <div className="flex items-center gap-2 px-5 font-mono text-[11px] text-fog" data-testid="relay-status">
       <span className={`w-1.5 h-1.5 rounded-full ${isError ? "bg-red-400" : "bg-mint animate-blink"}`} />
-      {isError ? "relay offline" : "relay live · circuit"}
+      {isError ? "relay offline" : "relay live"}
+    </div>
+  );
+}
+
+function WalletBox() {
+  const { wallet, session, signingIn, connecting, error } = useWallet();
+  const short = wallet ? `${wallet.slice(0, 4)}…${wallet.slice(-4)}` : null;
+
+  return (
+    <div className="space-y-2" data-testid="wallet-box">
+      {!wallet ? (
+        <button
+          data-testid="connect-wallet-button"
+          onClick={() => signInWithWallet()}
+          disabled={signingIn || connecting}
+          className="flex items-center justify-center gap-2 w-full rounded-xl border border-line bg-panel hover:border-mint/40 hover:text-mint text-fog font-semibold py-3 transition-all duration-200 disabled:opacity-50"
+        >
+          <Wallet size={16} />
+          {signingIn || connecting ? "Signing in…" : "Connect wallet"}
+        </button>
+      ) : (
+        <div className="w-full rounded-xl border border-mint/30 bg-mint-deep/50 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-sm text-mint" data-testid="wallet-address">{short}</span>
+            <span className="font-mono text-[10px] text-fog" data-testid="wallet-session-state">
+              {session ? "signed in" : "sign to launch"}
+            </span>
+          </div>
+          {!session && !signingIn && (
+            <button
+              data-testid="sign-message-button"
+              onClick={() => signInWithWallet()}
+              className="mt-2 w-full rounded-lg border border-line text-fog hover:text-mint hover:border-mint/40 font-mono text-[11px] py-1.5 transition-colors"
+            >
+              sign message →
+            </button>
+          )}
+          {signingIn && <p className="mt-2 font-mono text-[10px] text-fog">check your wallet…</p>}
+        </div>
+      )}
+      {error && <p className="px-1 font-mono text-[10px] text-red-300 leading-relaxed" data-testid="wallet-error">{error}</p>}
     </div>
   );
 }
@@ -86,26 +117,17 @@ function Panel({ onPick }) {
       </div>
       <div className="space-y-3 pt-4">
         <RelayStatus />
-        <a
-          href={MAIN_BUILDER}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-testid="connect-wallet-button"
-          className="flex items-center justify-center gap-2 w-full rounded-xl border border-line bg-panel hover:border-mint/40 hover:text-mint text-fog font-semibold py-3 transition-all duration-200"
-        >
-          <Wallet size={16} /> Connect wallet
-        </a>
-        <a
-          href={MAIN_BUILDER}
-          target="_blank"
-          rel="noopener noreferrer"
+        <WalletBox />
+        <Link
+          to="/builder"
           data-testid="deploy-coin-button"
+          onClick={onPick}
           className="block w-full rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] text-center font-bold text-lg py-3.5 transition-all duration-200 hover:shadow-[0_0_36px_rgba(74,222,128,0.35)] active:scale-[0.98]"
         >
           Deploy a coin
-        </a>
+        </Link>
         <p className="px-2 font-mono text-[10px] leading-relaxed text-fog/70">
-          portal only — wallet, signing and launching happen on circuitdev.fun, on the Solana mainnet
+          everything runs here — your wallet signs, CoinPad relays the rest
         </p>
       </div>
     </div>

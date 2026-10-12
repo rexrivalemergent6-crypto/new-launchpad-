@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Tag } from "@/components/blocks";
-import { mainHref } from "@/lib/relay";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -31,18 +31,15 @@ export default function Library() {
           Every block <span className="text-mint">a coin can hold.</span>
         </h1>
         <p className="mt-3 text-fog max-w-lg">
-          Fourteen families of blocks snap together like parts of a circuit. Browse them here, snap them
-          on the main site.
+          Fourteen families of blocks snap together like parts of a circuit. Ask Chip for any of them in
+          the builder.
         </p>
       </motion.div>
 
       <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-testid="library-grid">
         {FAMILIES.map((f, i) => (
-          <motion.a
+          <motion.div
             key={f.tag}
-            href={mainHref("/modules")}
-            target="_blank"
-            rel="noopener noreferrer"
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.15 }}
@@ -52,21 +49,21 @@ export default function Library() {
           >
             <div className="flex items-center justify-between">
               <Tag k={f.tag} />
-              <ArrowUpRight size={15} className="text-fog opacity-0 group-hover:opacity-60 group-hover:text-mint transition-all" />
+              <span className="font-mono text-[10px] text-fog/60">{f.tag}</span>
             </div>
             <h3 className="mt-4 font-bold text-lg">{f.name}</h3>
             <p className="mt-1.5 text-sm text-fog leading-relaxed">{f.desc}</p>
-          </motion.a>
+          </motion.div>
         ))}
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, ease: EASE }}
         className="mt-12 border border-line rounded-2xl bg-panel p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-        <p className="text-fog max-w-md">Every full block reference, with live examples, lives on the main site.</p>
-        <a href={mainHref("/modules")} target="_blank" rel="noopener noreferrer" data-testid="library-open-main"
+        <p className="text-fog max-w-md">Snap any of these together in the builder — one sentence, or block by block.</p>
+        <Link to="/builder" data-testid="library-to-builder"
           className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold px-6 py-3.5 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
-          Open the library <ArrowUpRight size={17} />
-        </a>
+          Open the builder <ArrowUpRight size={17} />
+        </Link>
       </motion.div>
     </div>
   );

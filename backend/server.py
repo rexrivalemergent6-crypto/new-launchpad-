@@ -1,5 +1,6 @@
 import os
 import time
+import uuid
 import logging
 from pathlib import Path
 
@@ -26,7 +27,7 @@ def client() -> httpx.AsyncClient:
     global _shared
     if _shared is None:
         _shared = httpx.AsyncClient(
-            timeout=httpx.Timeout(15.0),
+            timeout=httpx.Timeout(30.0),
             headers={"User-Agent": "Mozilla/5.0 (CoinPad relay)"},
             follow_redirects=True,
         )
@@ -50,10 +51,18 @@ def cache_set(key: str, value, ttl: int):
 TTL_JSON = 20
 TTL_IMG = 300
 
+# sid -> httpx.Cookies holding the upstream circuit.dev session
+SESSIONS: dict = {}
+
 
 async def upstream(path: str, params: dict | None = None) -> httpx.Response:
     url = f"{UPSTREAM}/{path}"
     return await client().get(url, params=params)
+
+
+def json_response(r: httpx.Response) -> Response:
+    return Response(content=r.content, media_type=r.headers.get("content-type", "application/json"),
+                    status_code=r.status_code)
 
 
 @api_router.get("/health")
@@ -65,6 +74,8 @@ async def health():
         return {"ok": False, "upstream": UPSTREAM, "error": str(e)}
 
 
+# ---------------- public data relay (cached) ----------------
+
 @api_router.get("/relay/stats")
 async def relay_stats():
     cached = cache_get("stats", TTL_JSON)
@@ -72,7 +83,7 @@ async def relay_stats():
         return Response(content=cached[0], media_type="application/json")
     r = await upstream("api/stats")
     cache_set("stats", (r.content,), TTL_JSON)
-    return Response(content=r.content, media_type="application/json", status_code=r.status_code)
+    return json_response(r)
 
 
 @api_router.get("/relay/explore")
@@ -84,7 +95,7 @@ async def relay_explore(request: Request):
         return Response(content=cached[0], media_type="application/json")
     r = await upstream("api/explore", params)
     cache_set(key, (r.content,), TTL_JSON)
-    return Response(content=r.content, media_type="application/json", status_code=r.status_code)
+    return json_response(r)
 
 
 @api_router.get("/relay/scoreboard")
@@ -94,7 +105,7 @@ async def relay_scoreboard():
         return Response(content=cached[0], media_type="application/json")
     r = await upstream("api/scoreboard")
     cache_set("scoreboard", (r.content,), TTL_JSON)
-    return Response(content=r.content, media_type="application/json", status_code=r.status_code)
+    return json_response(r)
 
 
 @api_router.get("/relay/img/{image_id}")
@@ -118,8 +129,87 @@ async def relay_img(image_id: str):
 async def relay_generic(path: str, request: Request):
     params = dict(request.query_params)
     r = await upstream(path, params)
-    return Response(content=r.content, media_type=r.headers.get("content-type", "application/json"),
-                    status_code=r.status_code)
+    return json_response(r)
+
+
+# ---------------- session relay (full wrapper) ----------------
+# The browser talks only to us. We keep the upstream circuit.dev session
+# server-side, mapped to our own httpOnly cpad_sid cookie.
+
+def our_sid(request: Request) -> str | None:
+    return request.cookies.get("cpad_sid")
+
+
+def jar_for(sid: str | None) -> httpx.Cookies | None:
+    if not sid:
+        return None
+    return SESSIONS.get(sid)
+
+
+def absorb_cookies(jar: httpx.Cookies, r: httpx.Response):
+    try:
+        jar.extract_cookies(r)
+    except Exception as e:
+        logger.warning(f"cookie absorb failed: {e}")
+
+
+def with_sid_cookie(resp: Response, sid: str) -> Response:
+    resp.set_cookie("cpad_sid", sid, httponly=True, samesite="lax", max_age=60 * 60 * 24 * 30)
+    return resp
+
+
+@api_router.post("/c/auth/nonce")
+async def c_nonce(request: Request):
+    body = await request.body()
+    r = await client().post(f"{UPSTREAM}/api/auth/nonce", content=body,
+                            headers={"content-type": "application/json"})
+    return json_response(r)
+
+
+@api_router.post("/c/auth/verify")
+async def c_verify(request: Request):
+    body = await request.body()
+    sid = our_sid(request) or str(uuid.uuid4())
+    jar = SESSIONS.get(sid) or httpx.Cookies()
+    r = await client().post(f"{UPSTREAM}/api/auth/verify", content=body,
+                            headers={"content-type": "application/json"}, cookies=jar)
+    if r.status_code == 200:
+        absorb_cookies(jar, r)
+        SESSIONS[sid] = jar
+        logger.info(f"upstream session stored for sid={sid[:8]}…")
+    resp = json_response(r)
+    return with_sid_cookie(resp, sid)
+
+
+@api_router.api_route("/c/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def c_relay(path: str, request: Request):
+    sid = our_sid(request)
+    jar = jar_for(sid)
+    body = await request.body()
+    headers = {"content-type": request.headers.get("content-type", "application/json")}
+    if request.headers.get("x-circuit-password"):
+        headers["x-circuit-password"] = request.headers["x-circuit-password"]
+
+    r = await client().request(
+        request.method,
+        f"{UPSTREAM}/api/{path}",
+        content=body if request.method != "GET" else None,
+        headers=headers,
+        params=dict(request.query_params),
+        cookies=jar,
+    )
+    if sid and jar is not None:
+        absorb_cookies(jar, r)
+
+    if r.status_code == 401 and path not in ("auth/me",):
+        return Response(
+            content=b'{"error":"Sign in with your wallet first (connect wallet in the sidebar)."}',
+            media_type="application/json", status_code=401)
+
+    resp = json_response(r)
+    if sid:
+        with_sid_cookie(resp, sid)
+    return resp
 
 
 app.include_router(api_router)

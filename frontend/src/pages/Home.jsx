@@ -53,7 +53,9 @@ export default function Home() {
   const { data: board } = useScoreboard();
   const coins = (explore?.cards || []).slice(0, 5);
 
-  const build = () => window.open(MAIN_BUILDER, "_blank", "noopener");
+  const build = () => {
+    window.location.assign(`/builder?q=${encodeURIComponent(sentence || "")}`);
+  };
 
   return (
     <div>

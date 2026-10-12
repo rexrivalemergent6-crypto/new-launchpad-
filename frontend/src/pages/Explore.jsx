@@ -31,13 +31,11 @@ export default function Explore() {
           watching happens here.
         </p>
         <a
-          href={MAIN_BUILDER}
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/builder"
           data-testid="explore-deploy-button"
           className="mt-6 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold px-6 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]"
         >
-          Deploy a coin <ArrowUpRight size={16} />
+          Deploy a coin <ArrowRight size={16} />
         </a>
       </motion.div>
 

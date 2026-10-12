@@ -25,17 +25,42 @@ export const useExplore = () =>
 export const useScoreboard = () =>
     useQuery({ queryKey: ["scoreboard"], queryFn: () => get("scoreboard"), refetchInterval: 60_000 });
 
+/* ---- session relay (full wrapper: all actions go through our backend) ---- */
+
+export const aiPassword = {
+    get: () => {
+        try { return localStorage.getItem("circuit:ai-password") ?? ""; } catch { return ""; }
+    },
+    set: (v) => {
+        try { localStorage.setItem("circuit:ai-password", v); } catch {}
+    },
+};
+
+const c = axios.create({ baseURL: `${API}/c`, withCredentials: true });
+
+export const cGet = (p) => c.get(p).then((r) => r.data).catch((e) => { throw e; });
+
+export const cPost = (p, body) =>
+    c.post(p, body, { headers: { "x-circuit-password": aiPassword.get() } })
+        .then((r) => r.data)
+        .catch((e) => {
+            const err = new Error(e?.response?.data?.error || e?.message || "relay error");
+            err.status = e?.response?.status;
+            err.data = e?.response?.data;
+            throw err;
+        });
+
 export const fmtUsd = (n) => {
     if (n == null) return "—";
     if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-    if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
+    if (n >= 1_000) return `$${(n / 1000).toFixed(1)}K`;
     return `$${Math.round(n)}`;
 };
 
 export const fmtNum = (n) => {
     if (n == null) return "—";
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+    if (n >= 1_000) return `${(n / 1000).toFixed(1)}K`;
     return `${Math.round(n)}`;
 };
 
