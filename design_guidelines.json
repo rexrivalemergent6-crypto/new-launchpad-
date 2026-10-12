@@ -1,0 +1,164 @@
+{
+  "project_name": "CircuitDev Solana Coin-Launcher Portal",
+  "archetype": "ARCHETYPE 7: ELECTRIC & NEON (Tactile Developer-Tool & Solana Coin-Launcher Hybrid)",
+  "emotional_tone": "High-velocity, precise, sovereign, hacker-refined crypto engineering",
+  "theme": "dark",
+  "backend_proxy_architecture": {
+    "backend_url": "FastAPI backend running at process.env.REACT_APP_BACKEND_URL or /api",
+    "proxied_endpoints": [
+      "/api/stats - Live relayed stats (total coins, SOL volume, total trades, total market cap)",
+      "/api/explore - Live relayed coin feed with filters (Just Launched, Top Volume, Hot Rules)",
+      "/api/scoreboard - Live relayed leaderboard (top coins, top rule creators, payout totals)",
+      "/api/img/* - Image proxy for token avatars and rule diagram assets",
+      "/api/build - Relays rule sentence / block configurations to circuitdev.fun"
+    ],
+    "action_forwarding": "All deploy, wallet connect, and live execution receipt links forward seamlessly to https://circuitdev.fun"
+  },
+  "colors": {
+    "background": {
+      "base": "#070B0E",
+      "surface": "#0C1117",
+      "surface_elevated": "#121820",
+      "canvas_dot": "rgba(255, 255, 255, 0.08)",
+      "sidebar": "#090D12"
+    },
+    "brand_accents": {
+      "primary_mint": "#4ADE80",
+      "mint_glow": "rgba(74, 222, 128, 0.25)",
+      "mint_hover": "#34D399",
+      "active_pill_bg": "rgba(6, 78, 59, 0.5)",
+      "active_pill_border": "rgba(52, 211, 153, 0.35)",
+      "active_pill_text": "#6EE7B7"
+    },
+    "block_badge_chips": {
+      "EV_event": {
+        "bg": "rgba(245, 158, 11, 0.15)",
+        "border": "rgba(245, 158, 11, 0.4)",
+        "text": "#FBBF24",
+        "label": "EV",
+        "description": "Event trigger block (rounded top, starts execution flow)"
+      },
+      "LG_logic": {
+        "bg": "rgba(20, 184, 166, 0.15)",
+        "border": "rgba(20, 184, 166, 0.4)",
+        "text": "#2DD4BF",
+        "label": "LG",
+        "description": "Logic block (condition check e.g. price / market cap threshold)"
+      },
+      "FN_function": {
+        "bg": "rgba(234, 179, 8, 0.15)",
+        "border": "rgba(234, 179, 8, 0.4)",
+        "text": "#FACC15",
+        "label": "FN",
+        "description": "Function block (money movement, buy/sell/burn/airdrop action)"
+      }
+    },
+    "interactive_chips": {
+      "percentage_chip": {
+        "bg": "rgba(59, 130, 246, 0.1)",
+        "border": "#3B82F6",
+        "text": "#93C5FD"
+      },
+      "amount_chip": {
+        "bg": "rgba(234, 179, 8, 0.1)",
+        "border": "#EAB308",
+        "text": "#FDE047"
+      }
+    },
+    "text": {
+      "primary": "#F8FAFC",
+      "secondary": "#94A3B8",
+      "muted": "#64748B",
+      "code_green": "#4ADE80"
+    }
+  },
+  "typography": {
+    "font_files": {
+      "headings": "Cabinet Grotesk or Outfit (sans-serif display)",
+      "mono_code": "JetBrains Mono or Fira Code (monospace for math, block numbers, rules)",
+      "body": "Inter or DM Sans"
+    },
+    "hierarchy": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight",
+      "h3": "text-xl sm:text-2xl font-semibold",
+      "subtitle": "text-lg text-slate-400 font-medium leading-relaxed",
+      "badge_chip": "font-mono text-xs font-bold tracking-wider",
+      "stat_number": "font-mono text-2xl sm:text-3xl font-bold text-emerald-400"
+    }
+  },
+  "logo_design": {
+    "style": "CodePad two-tone wordmark",
+    "part_1": "CIRCUIT (Bold White text, tracking-tight)",
+    "part_2": "DEV (Bold Mint Green #4ADE80 text with terminal underscore or dot)",
+    "container": "flex items-center gap-2 font-mono text-xl font-bold tracking-wider"
+  },
+  "layout_architecture": {
+    "app_shell": {
+      "sidebar": {
+        "width": "w-64",
+        "bg": "#090D12",
+        "border": "border-r border-slate-800/80",
+        "nav_items": ["Builder", "Explore", "Library", "Model", "Handbook", "Changelog"],
+        "active_item_style": "bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 font-semibold shadow-[0_0_15px_rgba(74,222,128,0.15)] rounded-lg py-2.5 px-3.5 flex items-center gap-3 transition-all",
+        "inactive_item_style": "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 rounded-lg py-2.5 px-3.5 flex items-center gap-3 transition-all",
+        "bottom_cta": "Large bright mint-green rounded button 'Deploy a coin' with dark text (bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-extrabold w-full shadow-lg shadow-emerald-500/20 py-3 rounded-xl)"
+      },
+      "main_canvas": {
+        "padding": "p-6 sm:p-8 lg:p-10",
+        "bg_pattern": "subtle dot-grid background (radial-gradient white dot grid 1px on #070B0E)"
+      }
+    }
+  },
+  "key_components": {
+    "1_live_stats_strip": {
+      "description": "Top or inline horizontal strip with live proxy stats (Total Coins Launched, SOL Volume Traded, Total Block Executions, Market Cap)",
+      "badge": "LIVE RELAY",
+      "animation": "Pulse indicator dot green + smooth counter updates"
+    },
+    "2_hero_sentence_builder": {
+      "description": "Interactive sentence prompt: 'One sentence becomes rule blocks that run a coin.' Users type or select templates (e.g. 'When market cap hits 100k SOL, buy 5% back and burn'). Instant real-time transformation into puzzle-piece rule blocks.",
+      "forward_action": "Clicking 'Launch Rules on Solana' packages rule JSON and opens circuitdev.fun/start"
+    },
+    "3_interactive_block_canvas": {
+      "description": "Visual puzzle-piece canvas showing snapped EV (Amber Event), LG (Teal Logic), and FN (Yellow Function) blocks with rounded tab connectors, inline white pill select inputs, blue percentage chips (%2.5), and yellow amount chips (10 SOL). Includes drag/reorder preview, adding new blocks, and block count pill ('5 blocks')."
+    },
+    "4_explore_coins_grid": {
+      "description": "Grid of relayed coin cards with proxied images (/api/img/*), live progress bars, fee rule summary tags, creator wallets, market cap, and direct receipt button linking to circuitdev.fun/c/[address]."
+    },
+    "5_scoreboard_leaderboard": {
+      "description": "Relayed leaderboard showing top performing rule-run coins, creator earnings, rule execution receipts count, and total SOL deposited in vaults."
+    },
+    "6_editorial_marquee": {
+      "description": "Option A slow drift marquee displaying recent live execution receipts, rule block events, and trending ticker tags."
+    }
+  },
+  "motion_and_libraries": {
+    "smooth_scroll": "Lenis smooth scroll engine initialized globally",
+    "animations": "Framer Motion for block snapping, hero reveal stagger, tab switching, hover micro-interactions",
+    "icons": "lucide-react or @phosphor-icons/react"
+  },
+  "image_urls": [
+    {
+      "category": "matrix_code_texture",
+      "url": "https://images.unsplash.com/photo-1547190027-9156686aa2f0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDZ8MHwxfHNlYXJjaHwyfHxjeWJlcnB1bmslMjBtYXRyaXglMjBjb2RlfGVufDB8fHx8MTc5MTgxNDM0M3ww&ixlib=rb-4.1.0&q=85",
+      "description": "Vertical columns of glowing green digital code on black"
+    },
+    {
+      "category": "dark_code_syntax",
+      "url": "https://images.unsplash.com/photo-1584949091598-c31daaaa4aa9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDZ8MHwxfHNlYXJjaHw0fHxjeWJlcnB1bmslMjBtYXRyaXglMjBjb2RlfGVufDB8fHx8MTc5MTgxNDM0M3ww&ixlib=rb-4.1.0&q=85",
+      "description": "Colorful computer code on dark screen"
+    }
+  ],
+  "testing_requirements": {
+    "rule": "ALL interactive components, buttons, inputs, tabs, stat items, coin cards, and canvas block elements MUST include a data-testid attribute formatted in kebab-case."
+  },
+  "instructions_to_main_agent": [
+    "Ensure all data displayed in components (stats, coins, scoreboard) is fetched from the FastAPI backend proxy (/api/stats, /api/explore, /api/scoreboard).",
+    "Implement the CodePad-style two-tone logo ('CIRCUIT' in white + 'DEV' in mint green).",
+    "Build the sidebar navigation with the dark-green active pill style and the prominent bright mint-green 'Deploy a coin' button.",
+    "Implement the block-builder canvas with EV/LG/FN badge chips, puzzle tab/notch connectors, blue % chips, yellow amount chips, and white pill inputs.",
+    "Include Lenis smooth scrolling and Framer Motion block animation micro-interactions.",
+    "Ensure all external actions (Deploy, Build, Receipt links) forward cleanly to circuitdev.fun."
+  ]
+}
