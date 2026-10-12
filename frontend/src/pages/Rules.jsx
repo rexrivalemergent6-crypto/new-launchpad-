@@ -57,7 +57,7 @@ export default function Rules() {
                 open coin
               </Link>
               <Link to={`/builder?q=${encodeURIComponent(ruleSentences.get(c.href) || c.summary || "")}`} data-testid={`rule-remix-${i}`}
-                className="flex-1 text-center rounded-lg bg-mint-bright hover:bg-mint text-[#062B18] font-bold font-mono text-[11px] py-2 transition-colors inline-flex items-center justify-center gap-1.5">
+                className="flex-1 text-center rounded-lg bg-mint-bright hover:bg-mint text-[#131311] font-bold font-mono text-[11px] py-2 transition-colors inline-flex items-center justify-center gap-1.5">
                 <Layers size={12} /> remix
               </Link>
             </div>
@@ -76,7 +76,7 @@ export default function Rules() {
               data-testid={`rules-page-${i + 1}`}
               onClick={() => setPage(i + 1)}
               className={`font-mono text-[11px] px-3.5 py-1.5 rounded-full border transition-colors ${
-                page === i + 1 ? "bg-mint-deep text-mint border-mint/40" : "text-fog border-line hover:text-snow"
+                page === i + 1 ? "bg-mint-deep text-mint border-mint/40" : "text-fog border-line hover:text-[#131311]"
               }`}
             >
               {i + 1}

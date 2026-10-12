@@ -40,7 +40,7 @@ export default function Flywheel() {
           <Flame size={20} className="text-mint" />
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">torched so far</p>
         </div>
-        <div className="mt-4 font-mono text-5xl lg:text-7xl font-medium tabular text-snow" data-testid="flywheel-burned-total">
+        <div className="mt-4 font-mono text-5xl lg:text-7xl font-medium tabular text-[#161613]" data-testid="flywheel-burned-total">
           {stats ? `${fmtNum(6600000)} $CODEPAD` : "···"}
         </div>
         <p className="mt-3 text-fog text-sm">every torch event is public and verifiable on-chain.</p>
@@ -60,7 +60,7 @@ export default function Flywheel() {
               {t.label === "AI agents on duty" && <Bot size={12} className="text-mint" />}
               {t.label}
             </div>
-            <div className="mt-3 font-mono text-3xl tabular text-snow" data-testid={`flywheel-total-${i}`}>
+            <div className="mt-3 font-mono text-3xl tabular text-[#161613]" data-testid={`flywheel-total-${i}`}>
               {t.fixed ? t.value : t.value ?? "···"}
               {t.unit && <span className="text-sm text-fog ml-1.5">{t.unit}</span>}
             </div>
@@ -94,7 +94,7 @@ export default function Flywheel() {
         className="mt-14 border border-line rounded-2xl bg-panel p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
         <p className="text-fog max-w-md">Every launch feeds the program. Ship yours with a single sentence.</p>
         <a href="/builder" data-testid="flywheel-deploy-button"
-          className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold px-6 py-3.5 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
+          className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#131311] font-bold px-6 py-3.5 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
           Deploy a coin <ArrowUpRight size={17} />
         </a>
       </motion.div>

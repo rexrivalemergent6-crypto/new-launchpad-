@@ -85,3 +85,8 @@
 - Drag targets upgraded: drop on event = stack under; drop on C-frame header = first branch; drop on block = insert after (Scratch-style); Ask Bolt programs now map onto REAL catalog blocks with correct colors and filled values.
 - Verified: 1440px + 390px (3-deep nesting, no horizontal scroll), drag/drop/move/delete, Ask Bolt, code view, Run/Launch, home + explore unaffected.
 - Remaining niceties: value pills can't yet be dropped into input slots; drag must start on label/tag, not on an input.
+
+## Live-only correction (2026-10-12, round 9)
+- Reverted an over-eager Mongo-harvest experiment (it briefly served explore/scoreboard from our own DB and crashed uvicorn on a bad route decorator). Restored: every content feed is a DIRECT live proxy with only a 10-20s freshness cache — stats, explore (26 clean cards), scoreboard, library, stocks, rulebook, live trades all verified 200 and returning fresh values (41 coins / 6005 SOL / 15030 trades at last check).
+- The ONLY data we store is our own launch ledger (Mongo "launches" collection, mint + timestamp recorded when a launch succeeds through /api/c/coins) which powers Explore's "Launched via CodePad" filter. Zero mock, zero scraped-DB copies.
+- Neo-brutal light theme (cream #F6F0DC, white cards with 3px black borders + hard shadows, amber/lime/pink accents) applied via Tailwind token swap so every page + button flipped at once; build page already full light editor (dome hats, C-frames, oval inputs, family header panels with "CLICK TO ADD").

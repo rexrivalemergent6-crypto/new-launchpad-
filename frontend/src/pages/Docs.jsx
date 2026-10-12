@@ -82,7 +82,7 @@ export default function Docs() {
       <div className="mt-12 border border-line rounded-2xl bg-panel p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
         <p className="text-fog">Enough reading — one sentence and Bolt does the rest.</p>
         <Link to="/builder" data-testid="docs-to-builder"
-          className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold px-6 py-3.5 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
+          className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#131311] font-bold px-6 py-3.5 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
           Open the builder <ArrowUpRight size={17} />
         </Link>
       </div>

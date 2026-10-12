@@ -25,7 +25,7 @@ export const Logo = ({ small }) => (
   <span className="inline-flex items-center gap-2.5 select-none">
     <CodePadMark size={small ? 26 : 30} />
     <span className="font-extrabold tracking-tight" style={{ fontSize: small ? 20 : 23 }}>
-      <span className="text-snow">Code</span>
+      <span className="text-[#161613]">Code</span>
       <span className="text-mint">Pad</span>
     </span>
   </span>
@@ -86,7 +86,7 @@ function NavItems({ onPick }) {
                   data-testid={n.tid}
                   onClick={onPick}
                   className={`px-5 py-2.5 rounded-xl text-[17px] transition-colors duration-200 ${
-                    active ? "bg-mint-deep text-mint" : "text-fog hover:text-snow hover:bg-white/5"
+                    active ? "bg-mint-deep text-mint" : "text-fog hover:text-[#131311] hover:bg-white/5"
                   }`}
                 >
                   {n.label}
@@ -175,7 +175,7 @@ function Panel({ onPick }) {
           to="/builder"
           data-testid="deploy-coin-button"
           onClick={onPick}
-          className="block w-full rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] text-center font-bold text-lg py-3.5 transition-all duration-200 hover:shadow-[0_0_36px_rgba(74,222,128,0.35)] active:scale-[0.98]"
+          className="block w-full rounded-xl bg-mint-bright hover:bg-mint text-[#131311] text-center font-bold text-lg py-3.5 transition-all duration-200 hover:shadow-[0_0_36px_rgba(74,222,128,0.35)] active:scale-[0.98]"
         >
           Deploy a coin
         </Link>
@@ -189,7 +189,7 @@ function Panel({ onPick }) {
             rel="noopener noreferrer"
             data-testid="x-social-link"
             aria-label="CodePad on X"
-            className="shrink-0 w-8 h-8 rounded-lg border border-line bg-panel flex items-center justify-center text-fog hover:text-snow hover:border-mint/40 transition-colors"
+            className="shrink-0 w-8 h-8 rounded-lg border border-line bg-panel flex items-center justify-center text-fog hover:text-[#131311] hover:border-mint/40 transition-colors"
           >
             <XIcon size={13} />
           </a>
@@ -235,7 +235,7 @@ export default function Sidebar() {
               data-testid="menu-toggle-button"
               onClick={() => setOpen(!open)}
               aria-label="Menu"
-              className="w-11 h-11 rounded-xl border border-line bg-panel flex items-center justify-center text-snow"
+              className="w-11 h-11 rounded-xl border border-line bg-panel flex items-center justify-center text-[#161613]"
             >
               {open ? <X size={20} /> : <Menu size={20} />}
             </button>

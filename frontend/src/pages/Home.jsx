@@ -110,7 +110,7 @@ export default function Home() {
                 <button
                   data-testid="hero-build-button"
                   onClick={build}
-                  className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold px-5 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)] active:scale-[0.97]"
+                  className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#131311] font-bold px-5 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)] active:scale-[0.97]"
                 >
                   Make it <ArrowRight size={17} />
                 </button>
@@ -266,7 +266,7 @@ export default function Home() {
             <button
               data-testid="footer-build-button"
               onClick={build}
-              className="inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold text-lg px-8 py-4 transition-all duration-200 hover:shadow-[0_0_40px_rgba(74,222,128,0.4)] active:scale-[0.97]"
+              className="inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#131311] font-bold text-lg px-8 py-4 transition-all duration-200 hover:shadow-[0_0_40px_rgba(74,222,128,0.4)] active:scale-[0.97]"
             >
               Make it <ArrowRight size={18} />
             </button>

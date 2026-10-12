@@ -64,7 +64,7 @@ function EventBlock({ delay }) {
       style={{ "--bc": COLORS.EV }}
     >
       <Tag k="EV" />
-      <span className="text-[15px] text-snow/90">when the fee pot gets paid</span>
+      <span className="text-[15px] text-[#161613]">when the fee pot gets paid</span>
     </motion.div>
   );
 }
@@ -79,9 +79,9 @@ function LogicBlock({ delay, chance, onCycle }) {
       style={{ "--bc": COLORS.LG }}
     >
       <Tag k="LG" />
-      <span className="text-[15px] text-snow/90">on</span>
+      <span className="text-[15px] text-[#161613]">on</span>
       <NumPill v={chance} onCycle={onCycle} />
-      <span className="text-[15px] text-snow/90">% of runs</span>
+      <span className="text-[15px] text-[#161613]">% of runs</span>
     </motion.div>
   );
 }
@@ -96,17 +96,17 @@ function ActionBar({ delay }) {
       style={{ "--bc": COLORS.FN }}
     >
       <Tag k="FN" />
-      <span className="text-[15px] text-snow/90">send a</span>
+      <span className="text-[15px] text-[#161613]">send a</span>
       <SelectPill>fixed slice</SelectPill>
       <AmtPill v="50" />
-      <span className="text-[15px] text-snow/90">% of</span>
+      <span className="text-[15px] text-[#161613]">% of</span>
       <SelectPill accent>the pot</SelectPill>
-      <span className="text-[15px] text-snow/90">of</span>
+      <span className="text-[15px] text-[#161613]">of</span>
       <TokenPill t="SOL" />
-      <span className="text-[15px] text-snow/90">to</span>
+      <span className="text-[15px] text-[#161613]">to</span>
       <SelectPill>top</SelectPill>
       <AmtPill v="10" />
-      <span className="text-[15px] text-snow/90">holders</span>
+      <span className="text-[15px] text-[#161613]">holders</span>
     </motion.div>
   );
 }
@@ -144,10 +144,10 @@ export function RuleStack({ className = "" }) {
         style={{ "--bc": COLORS.LG }}
       >
         <div className="flex flex-col gap-3">
-          <span className="text-[15px] text-snow/90">then</span>
+          <span className="text-[15px] text-[#161613]">then</span>
           <ActionBar delay={0.45} />
         </div>
-        <div className="text-[15px] text-snow/90 mt-1">failing that</div>
+        <div className="text-[15px] text-[#161613] mt-1">failing that</div>
       </motion.div>
     </div>
   );
@@ -157,7 +157,7 @@ export function MiniBlock({ tag, color, children }) {
   return (
     <div className="blk inline-flex items-center gap-2.5 px-3.5 py-2.5 text-[13px]" style={{ "--bc": color }}>
       <Tag k={tag} />
-      <span className="text-snow/85">{children}</span>
+      <span className="text-[#161613]">{children}</span>
     </div>
   );
 }

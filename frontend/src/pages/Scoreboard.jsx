@@ -40,7 +40,7 @@ function ListRow({ item, i }) {
           {item.name} <span className="text-mint font-mono text-xs">${item.ticker}</span>
         </div>
       </div>
-      <div className="font-mono text-sm tabular text-snow shrink-0">{item.text}</div>
+      <div className="font-mono text-sm tabular text-[#161613] shrink-0">{item.text}</div>
     </motion.a>
   );
 }

@@ -1,4 +1,5 @@
 import os
+import asyncio
 import time
 import json
 import uuid
@@ -8,8 +9,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, APIRouter, Request, Response
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 import httpx
+from motor.motor_asyncio import AsyncIOMotorClient
 
 import library_catalog
 
@@ -17,6 +18,7 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 UPSTREAM = os.environ['UPSTREAM_BASE_URL'].rstrip('/')
+# only our own launch records live here — every content feed is relayed live
 _mongo = AsyncIOMotorClient(os.environ['MONGO_URL'])
 db = _mongo[os.environ['DB_NAME']]
 
@@ -344,6 +346,7 @@ async def c_relay(path: str, request: Request):
     if sid:
         with_sid_cookie(resp, sid)
     return resp
+
 
 
 app.include_router(api_router)

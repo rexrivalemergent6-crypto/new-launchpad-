@@ -69,7 +69,7 @@ export default function CoinPage() {
           <motion.div key={s.l} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.1 + i * 0.05, ease: EASE }}
             className="border border-line rounded-2xl bg-panel p-4">
             <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-fog">{s.l}</div>
-            <div className="mt-2 font-mono text-xl tabular text-snow">{s.v}</div>
+            <div className="mt-2 font-mono text-xl tabular text-[#161613]">{s.v}</div>
           </motion.div>
         ))}
       </div>
@@ -108,7 +108,7 @@ export default function CoinPage() {
 
       <div className="mt-10 flex flex-wrap gap-3">
         <Link to={`/builder?q=${encodeURIComponent(card.summary || "")}`} data-testid="coin-remix"
-          className="inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#062B18] font-bold px-6 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
+          className="inline-flex items-center gap-2 rounded-xl bg-mint-bright hover:bg-mint text-[#131311] font-bold px-6 py-3 transition-all duration-200 hover:shadow-[0_0_30px_rgba(74,222,128,0.35)]">
           Remix with Bolt <Layers size={15} />
         </Link>
         <a href={mainHref(card.href)} target="_blank" rel="noopener noreferrer" data-testid="coin-trade"

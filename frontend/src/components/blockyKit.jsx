@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { Tag } from "@/components/blocks";
 import CATALOG from "@/data/blockCatalog.json";
 
-export const FAMILY_COLORS = { EV: "#D9A33C", LG: "#2DD4BF", CT: "#5B8DEF", DT: "#22D3EE", ST: "#34D399", AG: "#C084FC", AI: "#F472B6", WB: "#38BDF8", MD: "#A78BFA", WD: "#4ADE80", FN: "#E7C85F", SK: "#A3E635", BT: "#FB923C", OP: "#F87171", MO: "#CBD5E1" };
+export const FAMILY_COLORS = { EV: "#F0B04A", LG: "#6FCFBE", CT: "#E4E2D8", DT: "#92C9EF", ST: "#82D8A4", AG: "#B69CE8", AI: "#F2A9CB", WB: "#92C9EF", MD: "#C4B9F2", WD: "#82D8A4", FN: "#F2D06B", SK: "#D6F26E", BT: "#F09A62", OP: "#F08080", MO: "#D9D9CE" };
 export const colorOf = (code) => FAMILY_COLORS[code] || "#94A3B8";
 
 /* ---------------- catalog helpers ---------------- */
@@ -76,7 +76,7 @@ function FieldPill({ part, value, onChange }) {
           className="pz-in appearance-none cursor-pointer pr-6 truncate">
           {opts.map((o) => <option key={o} value={o} className="bg-ink">{o}</option>)}
         </select>
-        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-snow/70">▾</span>
+        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-[#161613]/70">▾</span>
       </span>
     );
   }
@@ -113,7 +113,7 @@ export function BlockPreview({ def, code }) {
   const shape = def.shape;
   const cls = shape === "hat" ? "pz-hat pz-tab" : shape === "reporter" ? "pz-reporter" : shape === "boolean" ? "pz-boolean" : shape === "terminal" ? "pz-notch" : "pz-notch pz-tab";
   return (
-    <div className="pz" style={{ "--c": colorOf(code), "--hole": "#0E141D" }}>
+    <div className="pz" style={{ "--c": colorOf(code) }}>
       <div className={`pz-body ${cls} inline-flex flex-wrap items-center gap-x-1.5 gap-y-1 px-2.5 py-1.5 max-w-full ${shape === "boolean" ? "px-5" : ""}`}>
         <span className="pz-tag">{code}</span>
         {partsOf(def).map((p, i) => p.k === "label"
@@ -156,7 +156,7 @@ function deleteBtn(node, ctx) {
 
 function ghost(key) {
   return (
-    <div key={key} className="pz-ghost flex items-center px-3 font-mono text-[10px] text-mint/90 mt-2.5" data-testid="blocky-snap-target">
+    <div key={key} className="pz-ghost flex items-center px-3 font-mono text-[10px] mt-2.5" data-testid="blocky-snap-target">
       next block snaps here
     </div>
   );
@@ -235,7 +235,7 @@ function renderFrame(node, ctx) {
                 {list.length ? renderStack(list, ctx) : (
                   <button type="button" data-testid={`blocky-slot-${node.id}${i ? `-${br.key}` : ""}`}
                     onClick={(e) => { e.stopPropagation(); ctx.setSel(selected ? null : { parentId: node.id, branch: br.key }); }}
-                    className={`pz-empty ml-1 px-3 font-mono text-[10px] text-left transition-colors ${selected ? "!border-mint/70 text-mint bg-mint-deep/40" : "text-fog/60 hover:text-snow"}`}>
+                    className={`pz-empty ml-1 px-3 font-mono text-[10px] text-left transition-colors ${selected ? "!border-mint/70 text-mint bg-mint-deep/40" : "text-fog/60 hover:text-[#131311]"}`}>
                     {selected ? "next block snaps here" : "drop a block here"}
                   </button>
                 )}
@@ -350,7 +350,7 @@ export function CompiledBlock({ label, value, i }) {
       className="blk blk-tab inline-flex items-center gap-3 px-4 py-3 self-start max-w-full" style={{ "--bc": "#E7C85F" }} data-testid={`compiled-block-${i}`}>
       <Tag k="FN" />
       <span className="font-mono text-[13px] text-yel shrink-0">{label}</span>
-      <span className="font-mono text-[12px] text-snow/80 break-all line-clamp-2">{value}</span>
+      <span className="font-mono text-[12px] text-[#161613]/80 break-all line-clamp-2">{value}</span>
     </motion.div>
   );
 }

@@ -14,7 +14,7 @@ html {
 
 body {
     margin: 0;
-    background: var(--ink);
+    background: #F6F0DC;
     color: #E8EDF5;
     font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -23,13 +23,13 @@ body {
 }
 
 ::selection {
-    background: rgba(74, 222, 128, 0.28);
-    color: #F2FFF7;
+    background: rgba(240, 176, 74, 0.5);
+    color: #131311;
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: #0A0F16; }
-::-webkit-scrollbar-thumb { background: #1C2634; border-radius: 8px; border: 2px solid #0A0F16; }
+::-webkit-scrollbar-thumb { background: #D8CFAF; border-radius: 8px; border: 2px solid #F6F0DC; }
 ::-webkit-scrollbar-thumb:hover { background: #2A3850; }
 
 @layer utilities {
@@ -167,124 +167,170 @@ body {
 }
 @media (min-width: 640px) { .pz { --arm: 40px; --nx: 18px; } }
 
-.pz-body {
-    position: relative;
-    background: var(--c);
-    color: #0A0F16;
-    border: 1.5px solid var(--edge);
-    border-radius: 10px;
-    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+/* ------- light neo-brutal block editor (build page) ------- */
+.pz {
+  --arm: 34px;
+  --nx: 0px;
+  color: #161613;
+  font-family: 'Outfit', sans-serif;
 }
-/* bottom connector tab — hangs into the notch of the block below */
+.pz-body {
+  position: relative;
+  background: var(--c, #F0B04A);
+  border: 3px solid #131311;
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 #131311;
+}
 .pz-tab::after {
-    content: "";
-    position: absolute;
-    left: var(--nx);
-    bottom: -9px;
-    width: 28px;
-    height: 10.5px;
-    background: var(--c);
-    clip-path: polygon(0 0, 100% 0, 76% 100%, 24% 100%);
-    z-index: 3;
-    pointer-events: none;
+  content: "";
+  position: absolute;
+  bottom: -13px;
+  left: 22px;
+  width: 44px;
+  height: 13px;
+  background: var(--c, #F0B04A);
+  border: 3px solid #131311;
+  border-top: none;
+  border-radius: 0 0 11px 11px;
+  box-sizing: border-box;
 }
 .pz-tab-arm::after { left: calc(var(--arm) + var(--nx)); }
-/* top notch — a cut in the top edge; covered by the tab of the block above */
 .pz-notch::before {
-    content: "";
-    position: absolute;
-    left: var(--nx);
-    top: -1.5px;
-    width: 28px;
-    height: 9px;
-    background: var(--hole);
-    clip-path: polygon(0 0, 100% 0, 76% 100%, 24% 100%);
-    z-index: 2;
-    pointer-events: none;
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 22px;
+  width: 44px;
+  height: 9px;
+  background: var(--panel-bg, #EAF0F9);
+  border: 3px solid #131311;
+  border-top: none;
+  border-radius: 0 0 11px 11px;
+  box-sizing: border-box;
 }
-/* hat: rounded dome on top-left */
-.pz-hat { margin-top: 15px; border-top-left-radius: 4px; }
+.pz-hat {
+  margin-top: 17px;
+  border-radius: 26px 26px 14px 14px;
+}
 .pz-hat::before {
-    content: "";
-    position: absolute;
-    left: -1.5px;
-    top: -15px;
-    width: 104px;
-    height: 17px;
-    background: var(--c);
-    border: 1.5px solid var(--edge);
-    border-bottom: none;
-    border-radius: 52px 52px 0 0 / 17px 17px 0 0;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
-    pointer-events: none;
+  content: "";
+  position: absolute;
+  top: -14px;
+  left: 18px;
+  width: 74px;
+  height: 20px;
+  background: var(--c, #F0B04A);
+  border: 3px solid #131311;
+  border-bottom: none;
+  border-radius: 999px 999px 0 0;
+  box-sizing: border-box;
 }
+.pz-hat.pz-notch::before { display: none; }
 .pz-reporter { border-radius: 999px; }
 .pz-boolean {
-    border-radius: 0;
-    border: none;
-    clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0 50%);
+  border-radius: 14px;
+  clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 16px 100%, 0 50%);
 }
-/* C-frame pieces */
-.pz-head { border-bottom-left-radius: 0; }
-.pz-mid { border-radius: 0 10px 10px 0; min-height: 26px; }
-.pz-foot { border-top-left-radius: 0; height: 18px; }
+.pz-head { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.pz-mid { border-radius: 0 12px 12px 0; min-height: 24px; }
+.pz-foot {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  height: 20px;
+  border-radius: 0 0 14px 14px;
+}
 .pz-arm {
-    position: relative;
-    z-index: 1;
-    width: var(--arm);
-    flex-shrink: 0;
-    margin: -1.5px 0;
-    background: var(--c);
-    border-left: 1.5px solid var(--edge);
-    border-right: 1.5px solid var(--edge);
+  width: var(--arm);
+  border-left: 3px solid #131311;
+  background: var(--c, #F0B04A);
+  border-radius: 0;
+  min-height: 30px;
+  cursor: pointer;
 }
-.pz-inner { padding: 9px 0 9px 0; min-width: 0; }
-/* inputs on a block body */
+.pz-inner {
+  padding: 9px 0 9px 0;
+  min-width: 0;
+  background: transparent;
+}
 .pz-in {
-    display: inline-flex;
-    align-items: center;
-    height: 26px;
-    max-width: min(260px, 100%);
-    padding: 0 10px;
-    border-radius: 999px;
-    background: rgba(10, 15, 22, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.45);
-    color: #E8EDF5;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    outline: none;
+  background: #ffffff;
+  color: #161613;
+  border: 2.5px solid #131311;
+  border-radius: 999px;
+  height: 30px;
+  padding: 0 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 12.5px;
+  box-shadow: 2px 2px 0 #131311;
 }
-.pz-in:focus { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55); }
+.pz-in:focus { box-shadow: 0 0 0 3px rgba(240, 176, 74, 0.65); outline: none; }
 .pz-in-bool { border-radius: 4px; clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0 50%); padding: 0 14px; }
 .pz-tag {
-    display: inline-flex;
-    align-items: center;
-    height: 18px;
-    padding: 0 5px;
-    border-radius: 5px;
-    border: 1px solid rgba(0, 0, 0, 0.38);
-    background: rgba(255, 255, 255, 0.18);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9.5px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    color: rgba(10, 15, 22, 0.78);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 21px;
+  padding: 0 5px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid #131311;
+  border-radius: 7px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #161613;
 }
-.pz-over { outline: 2px solid #4ADE80; outline-offset: 3px; border-radius: 10px; }
+.pz-over { outline: 3px dashed #131311; outline-offset: 3px; border-radius: 10px; }
 .pz-empty {
-    height: 34px;
-    min-width: 120px;
-    border-radius: 9px;
-    border: 1.5px dashed rgba(148, 163, 184, 0.25);
-    background: rgba(10, 15, 22, 0.55);
+  border: 2.5px dashed #13131199;
+  border-radius: 12px;
+  color: #13131199;
+  background: rgba(255, 255, 255, 0.45);
 }
 .pz-ghost {
-    height: 26px;
-    min-width: 150px;
-    border-radius: 9px;
-    border: 1.5px dashed rgba(74, 222, 128, 0.7);
-    background: rgba(74, 222, 128, 0.08);
-    box-shadow: 0 0 18px rgba(74, 222, 128, 0.18);
+  border: 2.5px dashed #13131188;
+  border-radius: 12px;
+  min-height: 40px;
+  color: #13131188;
+  background: rgba(255, 255, 255, 0.45);
 }
 @keyframes pz-pop { from { opacity: 0; } to { opacity: 1; } }
 .pz-pop { animation: pz-pop 0.28s ease-out; }
+
+/* build page light theme */
+.nbb-page { background: #F6F0DC; color: #161613; }
+.nbb-pill {
+  background: #ffffff;
+  border: 3px solid #131311;
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 #131311;
+}
+.nbb-canvas {
+  background: #EAF0F9;
+  background-image: radial-gradient(rgba(19, 19, 17, 0.10) 1.3px, transparent 1.3px);
+  background-size: 26px 26px;
+}
+.nbb-rail {
+  background: #F6F0DC;
+  border-right: 3px solid #131311;
+}
+.nbb-rail-btn {
+  border: 3px solid #131311;
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 #131311;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: #161613;
+  background: var(--c);
+}
+.nbb-rail-btn.active { background: #ffffff; box-shadow: 0 0 0 3px #F6F0DC, 0 0 0 6px #13131133; }
+.nbb-family-head { border: 3px solid #131311; border-radius: 0; box-shadow: none; }
+
+/* ------- site-wide neo-brutal pass ------- */
+[class*="bg-panel"] { box-shadow: 5px 5px 0 #131311; }
+[class*="border-line"] { border-color: #131311 !important; border-width: 3px; }
+[class*="bg-mint-deep"] { background: #FBF3D9 !important; }
+.nbb-banner { background: #D6F26E; border-bottom: 3px solid #131311; }
+.blk { background: #ffffff; color: #161613; }
+.blk .badge { background: rgba(255,255,255,0.9); }

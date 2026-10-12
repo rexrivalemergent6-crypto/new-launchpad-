@@ -9,22 +9,22 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                ink: "#0A0F16",
-                panel: "#0E141D",
-                raise: "#121A26",
-                line: "rgba(148,163,184,0.14)",
+                ink: "#F6F0DC",
+                panel: "#FFFFFF",
+                raise: "#F1E9D2",
+                line: "#131311",
                 mint: {
-                    DEFAULT: "#4ADE80",
-                    bright: "#6EE7A0",
-                    dim: "#2F9E5F",
-                    deep: "#0F2A1E"
+                    DEFAULT: "#2E7D32",
+                    bright: "#F0B04A",
+                    dim: "#7ED6A2",
+                    deep: "#FBF3D9"
                 },
                 amberx: "#D9A33C",
                 tealx: "#2DD4BF",
                 yel: "#E7C85F",
                 bluc: "#5B8DEF",
-                fog: "#8B93A7",
-                snow: "#E8EDF5"
+                fog: "rgba(22,22,19,0.60)",
+                snow: "#161613"
             },
             fontFamily: {
                 sans: ["Outfit", "ui-sans-serif", "system-ui", "sans-serif"],
