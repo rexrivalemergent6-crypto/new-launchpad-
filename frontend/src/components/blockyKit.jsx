@@ -169,6 +169,40 @@ function dropProps(key, ctx, target) {
   };
 }
 
+/* touch: HTML5 drag-and-drop does not exist on phones, so a long-press picks a block up
+   and the next tap (block / arm / slot / empty canvas) drops it. One finger at a time, so one timer. */
+let pressTimer = null;
+let pressAt = null;
+let releasePending = false; // the long-press finger is still down
+let swallowUntil = 0;       // ...and the click its release produces must not count as a drop
+function clearPress() { if (pressTimer) clearTimeout(pressTimer); pressTimer = null; pressAt = null; }
+
+function touchProps(node, ctx) {
+  return {
+    onPointerDown: (e) => {
+      if (e.pointerType === "mouse" || !ctx.setPick) return;
+      if (e.target.closest && e.target.closest("input,select,button,textarea")) return;
+      e.stopPropagation();
+      clearPress();
+      pressAt = [e.clientX, e.clientY];
+      pressTimer = setTimeout(() => { pressTimer = null; releasePending = true; ctx.setPick(node.id); if (navigator.vibrate) navigator.vibrate(12); }, 480);
+    },
+    onPointerMove: (e) => { if (pressTimer && pressAt && Math.hypot(e.clientX - pressAt[0], e.clientY - pressAt[1]) > 10) clearPress(); },
+    onPointerUp: () => { clearPress(); if (releasePending) { releasePending = false; swallowUntil = Date.now() + 400; } },
+    onPointerCancel: () => { clearPress(); releasePending = false; },
+    onContextMenu: (e) => { if (e.nativeEvent && e.nativeEvent.pointerType !== "mouse") e.preventDefault(); },
+  };
+}
+
+/** while a block is held, taps become drops */
+function held(ctx, e, target) {
+  if (!ctx.pick) return false;
+  e.stopPropagation();
+  if (Date.now() < swallowUntil) { swallowUntil = 0; return true; } // the long-press's own release click
+  ctx.dropPicked(target);
+  return true;
+}
+
 const isSel = (ctx, parentId, branch) => ctx.sel && ctx.sel.parentId === parentId && ctx.sel.branch === branch;
 
 function deleteBtn(node, ctx) {
@@ -203,9 +237,10 @@ function renderSimple(node, ctx) {
   const selected = hat && isSel(ctx, node.id, "in");
   return (
     <div key={node.id} className="pz pz-pop" style={{ "--c": colorOf(node.kindCode) }} data-testid={`blocky-node-${def?.type || "block"}`}>
-      <div {...dragProps(node, ctx)} {...dropProps(key, ctx, { mode: hat ? "into" : "after", node })}
-        onClick={(e) => { e.stopPropagation(); if (hat) ctx.setSel(selected ? null : { parentId: node.id, branch: "in" }); }}
-        className={`pz-body ${cls} group/blk inline-flex items-start gap-2 px-3 py-2 sm:py-2.5 max-w-full cursor-grab active:cursor-grabbing ${ctx.over === key || selected ? "pz-over" : ""}`}>
+      <div {...dragProps(node, ctx)} {...dropProps(key, ctx, { mode: hat ? "into" : "after", node })} {...touchProps(node, ctx)}
+        onClick={(e) => { if (held(ctx, e, { mode: hat ? "into" : "after", node })) return; e.stopPropagation(); if (hat) ctx.setSel(selected ? null : { parentId: node.id, branch: "in" }); }}
+        data-testid={`blocky-body-${node.id}`}
+        className={`pz-body ${cls} group/blk inline-flex items-start gap-2 px-3 py-2 sm:py-2.5 max-w-full cursor-grab active:cursor-grabbing ${ctx.over === key || selected ? "pz-over" : ""} ${ctx.pick === node.id ? "pz-picked" : ""}`}>
         <span className="pz-tag mt-[4px] shrink-0">{node.kindCode}</span>
         <div className="flex flex-col gap-1.5 min-w-0">
           {rowsOf(def).map((parts, i) => <PartsLine key={i} parts={parts} node={node} ctx={ctx} />)}
@@ -223,9 +258,9 @@ function renderFrame(node, ctx) {
   const headKey = `blk-${node.id}`;
   return (
     <div key={node.id} className="pz pz-pop inline-flex flex-col items-stretch" style={{ "--c": colorOf(node.kindCode) }} data-testid={`blocky-node-${def?.type || "block"}`}>
-      <div {...dragProps(node, ctx)} {...dropProps(headKey, ctx, { mode: "into", node, branch: branches[0].key })}
-        onClick={(e) => { e.stopPropagation(); ctx.setSel(isSel(ctx, node.id, branches[0].key) ? null : { parentId: node.id, branch: branches[0].key }); }}
-        className={`pz-body pz-head pz-notch pz-tab pz-tab-arm group/blk flex items-start gap-2 px-3 py-2 sm:py-2.5 cursor-grab active:cursor-grabbing ${ctx.over === headKey ? "pz-over" : ""}`}
+      <div {...dragProps(node, ctx)} {...dropProps(headKey, ctx, { mode: "into", node, branch: branches[0].key })} {...touchProps(node, ctx)}
+        onClick={(e) => { if (held(ctx, e, { mode: "into", node, branch: branches[0].key })) return; e.stopPropagation(); ctx.setSel(isSel(ctx, node.id, branches[0].key) ? null : { parentId: node.id, branch: branches[0].key }); }}
+        className={`pz-body pz-head pz-notch pz-tab pz-tab-arm group/blk flex items-start gap-2 px-3 py-2 sm:py-2.5 cursor-grab active:cursor-grabbing ${ctx.over === headKey ? "pz-over" : ""} ${ctx.pick === node.id ? "pz-picked" : ""}`}
         data-testid={`blocky-frame-head-${node.id}`}>
         <span className="pz-tag mt-[4px] shrink-0">{node.kindCode}</span>
         <div className="flex flex-col gap-1.5 min-w-0 flex-1">
@@ -248,7 +283,8 @@ function renderFrame(node, ctx) {
               </div>
             )}
             <div className="flex items-stretch min-w-0">
-              <div className="pz-arm" onClick={(e) => { e.stopPropagation(); ctx.setSel(selected ? null : { parentId: node.id, branch: br.key }); }}>
+              <div className="pz-arm" data-testid={`blocky-arm-${node.id}-${br.key}`}
+                onClick={(e) => { if (held(ctx, e, { mode: "into", node, branch: br.key })) return; e.stopPropagation(); ctx.setSel(selected ? null : { parentId: node.id, branch: br.key }); }}>
                 {armLabel && (
                   <>
                     <span className="hidden sm:block font-mono text-[10.5px] font-bold text-ink/75 pl-1.5 pt-2.5">{armLabel}</span>
@@ -261,7 +297,7 @@ function renderFrame(node, ctx) {
                 data-testid={`blocky-branch-${node.id}-${br.key}`}>
                 {list.length ? renderStack(list, ctx) : (
                   <button type="button" data-testid={`blocky-slot-${node.id}${i ? `-${br.key}` : ""}`}
-                    onClick={(e) => { e.stopPropagation(); ctx.setSel(selected ? null : { parentId: node.id, branch: br.key }); }}
+                    onClick={(e) => { if (held(ctx, e, { mode: "into", node, branch: br.key })) return; e.stopPropagation(); ctx.setSel(selected ? null : { parentId: node.id, branch: br.key }); }}
                     className={`pz-empty ml-1 px-3 font-mono text-[10px] text-left transition-colors ${selected ? "!border-mint/70 text-mint bg-mint-deep/40" : "text-fog/60 hover:text-snow"}`}>
                     {selected ? "next block snaps here" : "drop a block here"}
                   </button>

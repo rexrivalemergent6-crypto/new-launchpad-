@@ -3,10 +3,13 @@ import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Sparkles, Rocket, Play, Pencil, ChevronDown, StickyNote, Wallet, Menu, X as Close } from "lucide-react";
 import { Keypair, VersionedTransaction } from "@solana/web3.js";
-import { cPost, cGet, useExplore, useLibrary } from "@/lib/relay";
+import { cPost, cGet, relayGet, useExplore, useLibrary } from "@/lib/relay";
 import { useWallet, signInWithWallet, signTransaction } from "@/lib/walletStore";
 import { BlockPreview, colorOf, codeForDef, programToTree, countNodes, toPlainEnglish, toBlocks, renderProgram, strip, pushInto, containsNode, findNode, insertAfter, newNode } from "@/components/blockyKit";
 import CATALOG from "@/data/blockCatalog.json";
+import { CodePadMark } from "@/components/Sidebar";
+import FamilyFlyout from "@/components/FamilyFlyout";
+import { TEMPLATE_NAME, makeTicker, uploadLogo } from "@/lib/templates";
 
 const EASE = [0.16, 1, 0.3, 1];
 let nextId = 1000;
@@ -32,6 +35,10 @@ export default function Builder() {
   const [over, setOver] = useState(null);
   const [selFamily, setSelFamily] = useState("DT");
   const [flyout, setFlyout] = useState(false); // mobile: family flyout over the ask bar + canvas
+  const [pick, setPick] = useState(null); // touch: block id picked up by long-press, dropped by the next tap
+  const [question, setQuestion] = useState(null); // bolt asked a clarifying question (upstream 409): {prompt, ask}
+  const [answer, setAnswer] = useState("");
+  const [remix, setRemix] = useState(null); // {slug, state: "loading"|"ready"|"missing"}
 
   const [sentence, setSentence] = useState(params.get("q") || "");
   const [compiling, setCompiling] = useState(false);
@@ -57,13 +64,54 @@ export default function Builder() {
 
   useEffect(() => {
     const q = params.get("q");
+    const slug = params.get("remix");
     if (q) setSentence(q);
     if (params.get("launch")) setShowLaunch(true);
-    if (q && !autoBuilt.current) {
+    if (autoBuilt.current) return;
+    if (q) {
       autoBuilt.current = true;
       askBolt(q);
+    } else if (slug) {
+      autoBuilt.current = true;
+      loadTemplate(slug);
     }
   }, [params]);
+
+  /** ?remix=<slug>: load that template's live program the way upstream does (GET /api/p/<slug>?receipts=1),
+   *  falling back to the rules gallery feed; the original coin's name/ticker/image are never shown */
+  async function loadTemplate(slug) {
+    setRemix({ slug, state: "loading" });
+    say("loading template…");
+    let program = null;
+    try {
+      const d = await cGet(`p/${encodeURIComponent(slug)}?receipts=1`);
+      program = d?.program && typeof d.program === "object" ? d.program : null;
+    } catch { /* fall back to the gallery */ }
+    if (!program) {
+      try {
+        for (let pg = 1; pg <= 5 && !program; pg++) {
+          const r = await relayGet(`rules?page=${pg}`);
+          const hit = (r?.cards || []).find((c) => c.slug === slug);
+          if (hit?.program && typeof hit.program === "object") program = hit.program;
+          if (!r?.hasMore) break;
+        }
+      } catch { /* handled below */ }
+    }
+    if (!program) {
+      setRemix({ slug, state: "missing" });
+      say("template not found — ask bolt instead");
+      return;
+    }
+    const t = programToTree(program);
+    setTree(t);
+    setRawProgram(program);
+    setProjectName(`Remix of ${TEMPLATE_NAME}`);
+    setName((n) => n || TEMPLATE_NAME);
+    setTicker((tk) => tk || makeTicker(slug));
+    setSentence((sv) => sv || toPlainEnglish(t).slice(0, 480));
+    setRemix({ slug, state: "ready" });
+    say(`template loaded: ${slug} — ${countNodes(t)} blocks`);
+  }
 
   useEffect(() => {
     if (showLaunch && wallet && session && balanceSol == null) checkBalance(wallet);
@@ -98,7 +146,7 @@ export default function Builder() {
   // built from real catalog blocks (skipped for ?q= remixes, which auto-build instead)
   const demoSeeded = useRef(false);
   useEffect(() => {
-    if (demoSeeded.current || params.get("q") || tree.length || !blocks.length) return;
+    if (demoSeeded.current || params.get("q") || params.get("remix") || tree.length || !blocks.length) return;
     try { if (sessionStorage.getItem("cpad:demo-seeded")) return; } catch { /* storage blocked: seed anyway */ }
     demoSeeded.current = true;
     const byType = Object.fromEntries(blocks.map((b) => [b.type, b]));
@@ -126,12 +174,31 @@ export default function Builder() {
     say("demo loaded — press Run, edit any block, or ask bolt for something new");
   }, [blocks, params, tree.length]);
 
-  const ctx = { tree, setTree, sel, setSel, over, setOver, onDrop: handleDrop };
+  // touch: long-press picks a block up; the next tap on an arm / slot / block / empty canvas drops it there
+  function dropPicked(target) {
+    if (!pick) return;
+    const id = pick;
+    if (target === "root") {
+      const moving = findNode(tree, id);
+      if (moving) { setTree((t) => [...strip(t, id), moving]); say("moved to a fresh stack"); }
+    } else if (target?.node?.id === id) {
+      return; // tapped the block it is holding — keep holding
+    } else {
+      handleDrop(target, `move:${id}`);
+    }
+    setPick(null);
+  }
+  const ctx = { tree, setTree, sel, setSel, over, setOver, onDrop: handleDrop, pick, setPick, dropPicked };
 
   function addByType(type, target) {
     const def = blocks.find((b) => b.type === type);
     if (!def) return;
     const node = { id: `n-${nextId++}`, def, kindCode: codeForDef(def), vals: {}, children: nodeChildren(def) };
+    // a selected slot ({parentId, branch}) from tapping an arm / empty slot / event block
+    if (target && !target.mode && target.parentId != null) {
+      target = findNode(tree, target.parentId) ? { mode: "into", node: { id: target.parentId }, branch: target.branch } : null;
+    }
+    if (target && target.node && !findNode(tree, target.node.id)) target = null; // slot's block was deleted
     if (!target) {
       const hats = tree.filter((n) => n.children?.in !== undefined);
       const lastHat = hats[hats.length - 1];
@@ -219,6 +286,7 @@ export default function Builder() {
     if (!text) return;
     setCompiling(true);
     setCompileError(null);
+    setQuestion(null);
     say(`bolt, build: ${text}`);
     try {
       const data = await cPost("/compile", { prompt: text, coinTicker: ticker || undefined });
@@ -232,11 +300,28 @@ export default function Builder() {
         say(`bolt answered — ${toBlocks(data).length} blocks`);
       }
     } catch (e) {
-      setCompileError(e.message);
-      say(`bolt could not: ${e.message}`);
+      if (e.status === 409) {
+        // upstream answers vague prompts with a clarifying question — ask it, don't dead-end
+        setQuestion({ prompt: text, ask: e.message });
+        setAnswer("");
+        setCompileError(null);
+        say(`bolt asks: ${e.message}`);
+      } else {
+        setCompileError(e.message);
+        say(`bolt could not: ${e.message}`);
+      }
     } finally {
       setCompiling(false);
     }
+  }
+
+  function answerBolt() {
+    const a = answer.trim();
+    if (!a || !question) return;
+    const next = `${question.prompt.replace(/[.\s]+$/, "")}. ${a}`;
+    setQuestion(null);
+    setSentence(next);
+    askBolt(next);
   }
 
   const lam = (n) => (n == null || n === "" ? "—" : `${(Number(n) / 1e9).toFixed(4).replace(/0+$/, "").replace(/\.$/, "")} SOL`);
@@ -292,16 +377,30 @@ export default function Builder() {
         say(`terms in — launch fee ${lam(t?.launchFeeLamports ?? t?.totalLamports)}`);
       } catch (e) { say(`terms: ${e.message} (launch continues)`); }
 
-      // 3 — upstream builds the launch transaction for OUR coin key
+      // 3 — coin picture: the CodePad mark, uploaded like upstream does (POST /api/images -> https url)
+      setLaunchStep("image");
+      let imageUrl = "";
+      try { imageUrl = await uploadLogo(); say("picture ready — CodePad mark"); }
+      catch (e) { throw Error(`could not upload the coin picture: ${e.message}`); }
+
+      // 4 — upstream builds the launch transaction for OUR coin key
       setLaunchStep("tx");
+      const coinName = (name || projectName || TEMPLATE_NAME).trim().slice(0, 32);
+      const symbol = ((ticker || "").replace(/[^A-Za-z0-9]/g, "") || makeTicker(remix?.slug || coinName)).toUpperCase().slice(0, 10);
+      const slugify = (v) => String(v).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32) || "pad";
       let txRes;
       try {
         txRes = await cPost(`projects/${projectId()}/launch`, {
           mint: mintAddr,
           program: programPayload(),
           prompt: sentence || toPlainEnglish(tree) || undefined,
-          name: name || projectName,
-          symbol: ticker || undefined,
+          name: coinName,
+          symbol,
+          description: (sentence || toPlainEnglish(tree) || "").slice(0, 500),
+          imageUrl,
+          devBuyLamports: "0",
+          slug: slugify(symbol || coinName),
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         });
       } catch (e) { throw Error(`launch refused by the network: ${e.message}`); }
       if (!txRes?.txBase64) throw Error(txRes?.error || "the network sent no launch transaction — try again.");
@@ -476,11 +575,44 @@ export default function Builder() {
                 {compileError}
               </div>
             )}
+            {question && (
+              <form onSubmit={(e) => { e.preventDefault(); answerBolt(); }} className="mt-3 nbb-pill p-3.5 flex flex-col gap-2.5" style={{ background: "rgba(99,230,169,0.08)" }} data-testid="bolt-question">
+                <p className="font-mono text-[10px] font-bold tracking-[0.14em] text-mint">BOLT ASKS</p>
+                <p className="text-[14px] font-semibold leading-snug" data-testid="bolt-question-text">{question.ask}</p>
+                <div className="flex gap-2">
+                  <input value={answer} onChange={(e) => setAnswer(e.target.value)} autoFocus placeholder="your answer, e.g. 0.1 SOL each"
+                    data-testid="bolt-answer-input" className="nbb-in flex-1 min-w-0 !h-11 !rounded-xl text-[15px]" />
+                  <button type="submit" disabled={!answer.trim() || compiling} data-testid="bolt-answer-submit"
+                    className="nbb-ctl h-11 px-4 text-[14px] shrink-0 disabled:opacity-50" style={{ background: "#63E6A9", color: "#0A0F16" }}>
+                    answer
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
 
           {/* canvas */}
           <div className="flex-1 min-h-0 nbb-canvas border-t-[3px] lg:border-t border-line px-4 sm:px-8 py-7 overflow-auto lg:max-h-[calc(100vh-160px)]" data-lenis-prevent
-            onDragOver={(e) => e.preventDefault()} onDrop={handleRootDrop} data-testid="blocky-canvas">
+            onDragOver={(e) => e.preventDefault()} onDrop={handleRootDrop} data-testid="blocky-canvas"
+            onClick={(e) => { if (pick && e.target === e.currentTarget) dropPicked("root"); }}>
+            {remix && (
+              <div className="mb-5 nbb-pill p-3 pl-4 flex items-start gap-3" style={{ background: "#0E141D" }} data-testid="remix-banner">
+                <span className="w-9 h-9 shrink-0 rounded-lg bg-ink border border-line grid place-items-center"><CodePadMark size={24} /></span>
+                <p className="flex-1 text-[13px] font-semibold leading-snug pt-0.5">
+                  {remix.state === "loading" ? "Loading the template…" : remix.state === "missing" ? "That template isn't available any more — ask bolt to build something like it." : "You're remixing a template. Change anything, then launch it as your own coin."}
+                </p>
+                <button type="button" onClick={() => setRemix(null)} aria-label="dismiss" data-testid="remix-banner-close" className="text-fog hover:text-snow shrink-0 pt-0.5"><Close size={16} /></button>
+              </div>
+            )}
+            {pick && (
+              <div className="fixed left-3 right-3 bottom-4 lg:left-auto lg:right-8 lg:w-[460px] z-40 nbb-pill p-2.5 pl-4 flex items-center gap-3 shadow-[0_10px_30px_rgba(0,0,0,0.5)]" style={{ background: "#12321F" }} data-testid="blocky-move-banner">
+                <p className="flex-1 font-mono text-[11.5px] font-bold text-mint leading-snug">
+                  holding {findNode(tree, pick)?.def?.label || "block"} — tap an arm, a slot or a block to drop it · tap empty canvas for a new stack
+                </p>
+                <button type="button" onClick={(e) => { e.stopPropagation(); setPick(null); }} data-testid="blocky-move-cancel"
+                  className="nbb-ctl nbb-ctl-dark !h-9 px-3 text-[12px] shrink-0">cancel</button>
+              </div>
+            )}
             {showCode ? (
               <pre className="font-mono text-[11.5px] font-semibold text-snow whitespace-pre-wrap break-all max-w-full" data-testid="blocky-json">
                 {rawProgram ? JSON.stringify(rawProgram, null, 2) : JSON.stringify(tree.map(({ def, vals }) => ({ type: def?.type, vals })), null, 2)}
@@ -540,39 +672,8 @@ export default function Builder() {
         </div>
         {/* mobile: family flyout over ask bar + canvas (upstream behaviour: tap a family, tap a block) */}
         {flyout && (
-          <div className="lg:hidden absolute top-0 bottom-0 left-[84px] right-0 z-20 nbb-flyout nbb-pop-in flex flex-col" data-testid="blocky-palette-mobile">
-            <div className="nbb-flyout-head shrink-0 flex items-center gap-3 px-4 sm:px-5" style={{ background: `linear-gradient(0deg, ${colorOf(selFamily)}2E, ${colorOf(selFamily)}2E), #0E141D` }}
-              data-testid="blocky-family-head-mobile">
-              <span className="w-[46px] h-[46px] shrink-0 rounded-xl border-[3px] border-black/55 flex items-center justify-center font-mono font-extrabold text-[15px] shadow-[3px_3px_0_rgba(0,0,0,0.42)]"
-                style={{ background: colorOf(selFamily), color: "#0A0F16" }}>
-                {selFamily}
-              </span>
-              <div className="min-w-0 flex-1">
-                <h2 className="font-extrabold text-[22px] leading-tight truncate">{fam.name}</h2>
-                <p className="text-[13px] text-snow/65 leading-snug line-clamp-2">{fam.desc}</p>
-              </div>
-              <button type="button" onClick={() => setFlyout(false)} aria-label="close blocks" data-testid="blocky-flyout-close"
-                className="shrink-0 w-9 h-9 rounded-xl border-[3px] border-black/55 bg-[#E8EDF5] text-[#0A0F16] grid place-items-center shadow-[2px_2px_0_rgba(0,0,0,0.42)]">
-                <Close size={16} strokeWidth={3} />
-              </button>
-            </div>
-            <div className="flex-1 min-h-0 overflow-y-auto px-5 pt-6 pb-10" data-lenis-prevent>
-              <p className="font-mono text-[13px] font-bold tracking-[0.12em] text-snow/55 mb-5">CLICK TO ADD</p>
-              <div className="flex flex-col items-start gap-[22px]" data-testid="palette-list-mobile">
-                {palette.map((b) => (
-                  <div key={b.type} draggable
-                    onDragStart={(e) => { e.dataTransfer.setData("text/plain", "new:" + b.type); e.dataTransfer.effectAllowed = "copy"; }}
-                    onDragEnd={() => setFlyout(false)}
-                    onClick={() => { addByType(b.type, sel); setFlyout(false); say(`added: ${b.label}`); }}
-                    data-testid={`palette-${b.type}`}
-                    className="cursor-pointer max-w-full active:scale-[0.98] transition-transform">
-                    <BlockPreview def={b} code={codeForDef(b)} large />
-                  </div>
-                ))}
-                {!palette.length && <p className="font-mono text-[12px] text-snow/50">loading…</p>}
-              </div>
-            </div>
-          </div>
+          <FamilyFlyout code={selFamily} fam={fam} palette={palette} onClose={() => setFlyout(false)}
+            onAdd={(b) => { addByType(b.type, sel); setFlyout(false); say(`added: ${b.label}`); }} />
         )}
       </div>
 
@@ -609,6 +710,10 @@ export default function Builder() {
               <button onClick={() => !launching && setShowLaunch(false)} data-testid="launch-close" className="font-bold text-fog hover:text-snow"><Close size={18} /></button>
             </div>
 
+            <div className="flex items-center gap-3 mb-3" data-testid="launch-image">
+              <span className="w-14 h-14 rounded-xl bg-ink border-2 border-line grid place-items-center shrink-0" data-testid="launch-image-logo"><CodePadMark size={38} /></span>
+              <p className="font-mono text-[11px] text-fog leading-snug">coin picture: the CodePad mark — uploaded for you at launch</p>
+            </div>
             <div className="space-y-3">
               <input value={name} onChange={(e) => setName(e.target.value)} onBlur={(e) => checkTicker(e.target.value.trim())} data-testid="launch-name-input" placeholder="Coin name"
                 className="nbb-in w-full !h-11 !rounded-xl text-[15px]" />
@@ -660,13 +765,14 @@ export default function Builder() {
                 {[
                   ["wallet", "wallet sign-in"],
                   ["terms", "live fee terms"],
+                  ["image", "coin picture (CodePad mark)"],
                   ["tx", "building the launch transaction"],
                   ["signing", "your wallet signs"],
                   ["sending", "broadcasting"],
                   ["registering", "registering the coin"],
                   ["status", "waiting for the network…"],
                 ].map(([k, label]) => {
-                  const order = ["wallet", "terms", "tx", "signing", "sending", "registering", "status", "live"];
+                  const order = ["wallet", "terms", "image", "tx", "signing", "sending", "registering", "status", "live"];
                   const idx = order.indexOf(launchStep);
                   const mine = order.indexOf(k);
                   const done = launchStep === "live" || idx > mine;

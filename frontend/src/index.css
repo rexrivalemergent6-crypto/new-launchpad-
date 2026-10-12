@@ -377,3 +377,7 @@ body {
 @keyframes nbb-pop-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
 .nbb-pop-in { animation: nbb-pop-in 0.18s ease-out; }
 .pz input.pz-in { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
+/* touch: no iOS callout / text selection on a long-press; held block is visibly lifted */
+.pz-body { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.pz-body input, .pz-body select { -webkit-user-select: text; user-select: text; }
+.pz-picked { outline: 2.5px dashed #63E6A9; outline-offset: 3px; opacity: 0.6; }

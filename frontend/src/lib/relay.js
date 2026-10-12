@@ -15,6 +15,7 @@ export const relayImg = (url) => {
 };
 
 const get = (p) => axios.get(`${API}/relay/${p}`).then((r) => r.data);
+export const relayGet = get;
 
 export const useStats = () =>
     useQuery({ queryKey: ["stats"], queryFn: () => get("stats"), refetchInterval: 45_000 });
@@ -56,8 +57,8 @@ const c = axios.create({ baseURL: `${API}/c`, withCredentials: true });
 
 export const cGet = (p) => c.get(p).then((r) => r.data).catch((e) => { throw e; });
 
-export const cPost = (p, body) =>
-    c.post(p, body, { headers: { "x-circuit-password": aiPassword.get() } })
+export const cPost = (p, body, extraHeaders = {}) =>
+    c.post(p, body, { headers: { "x-circuit-password": aiPassword.get(), ...extraHeaders } })
         .then((r) => r.data)
         .catch((e) => {
             const err = new Error(e?.response?.data?.error || e?.message || "relay error");
