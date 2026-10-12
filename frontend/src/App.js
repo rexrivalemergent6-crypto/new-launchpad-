@@ -11,6 +11,16 @@ import Library from "@/pages/Library";
 import Recipes from "@/pages/Recipes";
 import Stocks from "@/pages/Stocks";
 import Flywheel from "@/pages/Flywheel";
+import Rules from "@/pages/Rules";
+import Live from "@/pages/Live";
+import Paid from "@/pages/Paid";
+import Stats from "@/pages/Stats";
+import Docs from "@/pages/Docs";
+import Updates from "@/pages/Updates";
+import { Terms, Risks, Privacy } from "@/pages/Legal";
+import Brand from "@/pages/Brand";
+import CoinPage from "@/pages/CoinPage";
+import Embed from "@/pages/Embed";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -77,6 +87,18 @@ function App() {
               <Route path="/recipes" element={<Recipes />} />
               <Route path="/stocks" element={<Stocks />} />
               <Route path="/flywheel" element={<Flywheel />} />
+              <Route path="/rules" element={<Rules />} />
+              <Route path="/live" element={<Live />} />
+              <Route path="/paid" element={<Paid />} />
+              <Route path="/stats" element={<Stats />} />
+              <Route path="/docs" element={<Docs />} />
+              <Route path="/updates" element={<Updates />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/risks" element={<Risks />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/brand" element={<Brand />} />
+              <Route path="/coin/:mint" element={<CoinPage />} />
+              <Route path="/embed" element={<Embed />} />
               <Route path="*" element={<Home />} />
             </Routes>
           </main>

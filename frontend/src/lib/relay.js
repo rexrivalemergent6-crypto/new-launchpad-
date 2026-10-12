@@ -28,6 +28,15 @@ export const useScoreboard = () =>
 export const useStocks = () =>
     useQuery({ queryKey: ["stocks"], queryFn: () => get("stocks"), refetchInterval: 60_000 });
 
+export const useRules = (page = 1) =>
+    useQuery({ queryKey: ["rules", page], queryFn: () => get(`rules?page=${page}`) });
+
+export const useLive = () =>
+    useQuery({ queryKey: ["live"], queryFn: () => get("live"), refetchInterval: 15_000 });
+
+export const useLaunches = () =>
+    useQuery({ queryKey: ["launches"], queryFn: () => axios.get(`${API}/portal/launches`).then((r) => r.data), refetchInterval: 30_000 });
+
 /** Full Circuit block library, relayed + parsed by our backend (/api/relay/library). */
 export const useLibrary = () =>
     useQuery({ queryKey: ["library"], queryFn: () => get("library"), staleTime: 10 * 60_000, retry: 1 });

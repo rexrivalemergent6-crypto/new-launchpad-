@@ -31,37 +31,72 @@ export const Logo = ({ small }) => (
   </span>
 );
 
-const INTERNAL = [
-  { label: "Builder", to: "/builder", tid: "nav-builder" },
-  { label: "Explore", to: "/explore", tid: "nav-explore" },
-  { label: "Scoreboard", to: "/scoreboard", tid: "nav-scoreboard" },
-  { label: "Library", to: "/library", tid: "nav-library" },
-  { label: "Recipes", to: "/recipes", tid: "nav-recipes" },
-  { label: "Stocks", to: "/stocks", tid: "nav-stocks" },
-  { label: "Flywheel", to: "/flywheel", tid: "nav-flywheel" },
+const GROUPS = [
+  {
+    title: "studio",
+    items: [
+      { label: "Builder", to: "/builder", tid: "nav-builder" },
+      { label: "Explore", to: "/explore", tid: "nav-explore" },
+    ],
+  },
+  {
+    title: "the market",
+    items: [
+      { label: "Scoreboard", to: "/scoreboard", tid: "nav-scoreboard" },
+      { label: "Live trades", to: "/live", tid: "nav-live" },
+      { label: "Payouts", to: "/paid", tid: "nav-paid" },
+      { label: "Stats", to: "/stats", tid: "nav-stats" },
+      { label: "Rulebook", to: "/rules", tid: "nav-rules" },
+    ],
+  },
+  {
+    title: "blocks",
+    items: [
+      { label: "Library", to: "/library", tid: "nav-library" },
+      { label: "Blueprints", to: "/recipes", tid: "nav-recipes" },
+      { label: "Stocks", to: "/stocks", tid: "nav-stocks" },
+      { label: "The Loop", to: "/flywheel", tid: "nav-flywheel" },
+    ],
+  },
+];
+
+const LEGAL = [
+  { label: "Docs", to: "/docs", tid: "nav-docs" },
+  { label: "Updates", to: "/updates", tid: "nav-updates" },
+  { label: "Terms", to: "/terms", tid: "nav-terms" },
+  { label: "Risks", to: "/risks", tid: "nav-risks" },
+  { label: "Privacy", to: "/privacy", tid: "nav-privacy" },
+  { label: "Brand", to: "/brand", tid: "nav-brand" },
 ];
 
 function NavItems({ onPick }) {
   const { pathname } = useLocation();
   return (
-    <nav className="flex flex-col gap-1">
-      {INTERNAL.map((n) => {
-        const active = pathname === n.to;
-        return (
-          <Link
-            key={n.label}
-            to={n.to}
-            data-testid={n.tid}
-            onClick={onPick}
-            className={`px-5 py-3 rounded-xl text-[19px] transition-colors duration-200 ${
-              active ? "bg-mint-deep text-mint" : "text-fog hover:text-snow hover:bg-white/5"
-            }`}
-          >
-            {n.label}
-          </Link>
-        );
-      })}
-    </nav>
+    <div className="flex flex-col gap-4">
+      {GROUPS.map((g) => (
+        <div key={g.title}>
+          <p className="px-5 mb-1.5 font-mono text-[9px] uppercase tracking-[0.24em] text-fog/60">{g.title}</p>
+          <div className="flex flex-col gap-0.5">
+            {g.items.map((n) => {
+              const active = pathname === n.to;
+              return (
+                <Link
+                  key={n.label}
+                  to={n.to}
+                  data-testid={n.tid}
+                  onClick={onPick}
+                  className={`px-5 py-2.5 rounded-xl text-[17px] transition-colors duration-200 ${
+                    active ? "bg-mint-deep text-mint" : "text-fog hover:text-snow hover:bg-white/5"
+                  }`}
+                >
+                  {n.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -118,14 +153,22 @@ function WalletBox() {
 
 function Panel({ onPick }) {
   return (
-    <div className="h-full flex flex-col px-4 pb-6 pt-7 overflow-y-auto">
-      <Link to="/" data-testid="nav-home" onClick={onPick} className="px-3 mb-8 shrink-0">
+    <div className="h-full flex flex-col px-4 pb-5 pt-6 overflow-y-auto">
+      <Link to="/" data-testid="nav-home" onClick={onPick} className="px-3 mb-6 shrink-0">
         <Logo />
       </Link>
       <div className="flex-1">
         <NavItems onPick={onPick} />
       </div>
-      <div className="space-y-3 pt-4">
+      <div className="pt-4 space-y-3">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 px-3" data-testid="legal-links">
+          {LEGAL.map((l) => (
+            <Link key={l.to} to={l.to} data-testid={l.tid} onClick={onPick}
+              className="font-mono text-[10px] text-fog/70 hover:text-mint transition-colors">
+              {l.label}
+            </Link>
+          ))}
+        </div>
         <RelayStatus />
         <WalletBox />
         <Link

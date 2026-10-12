@@ -8,6 +8,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, APIRouter, Request, Response
 from starlette.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
 import httpx
 
 import library_catalog
@@ -16,8 +17,10 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 UPSTREAM = os.environ['UPSTREAM_BASE_URL'].rstrip('/')
+_mongo = AsyncIOMotorClient(os.environ['MONGO_URL'])
+db = _mongo[os.environ['DB_NAME']]
 
-app = FastAPI(title="CoinPad Relay")
+app = FastAPI(title="CodePad Relay")
 api_router = APIRouter(prefix="/api")
 
 logging.basicConfig(level=logging.INFO)
@@ -143,6 +146,39 @@ async def relay_stocks():
         return Response(content=cached[0], media_type="application/json")
     r = await upstream("api/stocks/prices")
     cache_set("stocks", (r.content,), 60)
+    return json_response(r)
+
+
+@api_router.get("/portal/launches")
+async def portal_launches():
+    items = []
+    async for doc in db.launches.find().sort("at", -1).limit(200):
+        items.append({"mint": doc.get("mint"), "url": doc.get("url"), "at": doc.get("at")})
+    return {"launches": items, "count": len(items)}
+
+
+@api_router.get("/relay/rules")
+async def relay_rules(request: Request):
+    params = dict(request.query_params)
+    r = await upstream("api/rules", params)
+    content = r.content
+    if r.status_code == 200:
+        try:
+            data = r.json()
+            data["cards"] = brand_clean_list(data.get("cards", []))
+            content = json.dumps(data).encode()
+        except Exception:
+            pass
+    return Response(content=content, media_type="application/json", status_code=r.status_code)
+
+
+@api_router.get("/relay/live")
+async def relay_live():
+    cached = cache_get("live", 10)
+    if cached:
+        return Response(content=cached[0], media_type="application/json")
+    r = await upstream("api/activity")
+    cache_set("live", (r.content,), 10)
     return json_response(r)
 
 
@@ -285,6 +321,19 @@ async def c_relay(path: str, request: Request):
     )
     if sid and jar is not None:
         absorb_cookies(jar, r)
+
+    if path == "coins" and request.method == "POST" and r.status_code == 200:
+        try:
+            payload = r.json()
+            await db.launches.insert_one({
+                "mint": payload.get("mint") or payload.get("address") or payload.get("url"),
+                "url": payload.get("url"),
+                "raw": json.dumps(payload)[:2000],
+                "at": time.time() * 1000,
+            })
+            logger.info("launch recorded through CodePad portal")
+        except Exception as e:
+            logger.warning(f"launch record failed: {e}")
 
     if r.status_code == 401 and path not in ("auth/me",):
         return Response(

@@ -57,3 +57,10 @@
 ## Everything-upstream pass (2026-10-12, round 4)
 - New GET /api/relay/stocks (60s cache) relays the upstream live stock price feed; Stocks page tiles now render live prices (TSLA $379, NVDA $226 …) with graceful fallback to the symbol list if the relay hiccups.
 - Confirmed every data surface is upstream-proxied: stats, explore coins, scoreboard (+brand filter), 134-block library, stock prices, coin images via /api/relay/*; Bolt compile via /api/c/compile; wallet sign-in via /api/c/auth/*; launch via /api/c/coins. Only our own paraphrased copy and recipe blueprints are static by design.
+
+## Every page taken + blocky workshop (2026-10-12, round 5)
+- Full sitemap crawled (20 URLs). New pages, all relayed: /rules (rulebook gallery, /api/relay/rules, paginated, brand-filtered), /live (trade pulse, /api/relay/live, 15s refresh), /paid (payout ledger), /stats, /docs (original handbook), /updates (ship log), /terms /risks /privacy (original copy), /brand (logo+swatches+X), /coin/:mint (coin detail from explore+rules match), /embed (standalone widget, no sidebar).
+- Launch tracking: POST /api/c/coins success now records the mint in MongoDB (launches collection); GET /api/portal/launches serves it.
+- Explore defaults to "Launched via CodePad" (mint matches our launches table) with an "All pad coins" toggle; honest empty state until the first portal launch.
+- Blocky workshop (Builder): project bar (icon + editable name), Stocks NEW chip, Bolt & log toggle, code view toggle, Launch (amber) + Run (green, dropdown: simulate / check-with-Bolt via relay), Ask Bolt bar + suggestion chips, 13-family colored rail, relayed palette (all catalog blocks with dropdown/value field pills), snap-in container blocks (hat/if), delete, block count, plain-english line. Engine split into components/blockyKit.jsx (flat iterative renderer — babel-safe after a stack-overflow crash with recursive components).
+- Verified: rules 17 cards/2 pages, live 7 items, launches 200, builder snap test passes (1 node on canvas after palette click), explore empty-state + 26 all-pad cards, mobile builder clean at 390px.
