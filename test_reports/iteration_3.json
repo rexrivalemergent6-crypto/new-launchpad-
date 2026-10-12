@@ -1,0 +1,98 @@
+{
+  "summary": "Full mobile-first frontend verification of /builder rebuild per bifrost mirror of circuitdev.fun/build. Tested at 390x844 (mobile), 1440x900 (desktop) and 390 home. All critical acceptance criteria from the review request pass with ZERO console errors across every page.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verifications": {
+    "mobile_builder_390x844": {
+      "scrollWidth": 390,
+      "scrollHeight": 844,
+      "clientHeight": 844,
+      "no_horizontal_overflow": true,
+      "no_vertical_body_scroll": true,
+      "site_header_hidden": true,
+      "builder_menu_button_present": true,
+      "menu_button_opens_sidebar": "verified (cpad:menu event path)",
+      "project_icon_name_row_at_top": true,
+      "chips_row_single_line": "Stocks / Bolt & log / <> all visible on one row at y~82, within 44px band",
+      "launch_button_box": {"w": 102, "h": 44},
+      "run_button_box": {"w": 96, "h": 44},
+      "family_rail_15_buttons": 15,
+      "family_rail_button_size": {"w": 52, "h": 46},
+      "rail_last_button_bottom_px": 927,
+      "note_rail_overflow": "Rail column internally scrolls past viewport (bottom=927) BUT page body scrollHeight remains 844 — matches upstream behavior per spec."
+    },
+    "demo_program": {
+      "seeded_on_fresh_session": true,
+      "initial_block_count": 6,
+      "visible_blocks": "EV when button Go pressed -> ST change clicks by 1 -> LG if clicks>=3 then post 'Three clicks! Resetting.' + set clicks to 0 else post 'Click {clicks}'",
+      "block_deletion_works": "6 -> 0 after single delete chain (block-delete testid)",
+      "reload_no_reseed": "After deletion + reload: blocks=0, sessionStorage cpad:demo-seeded='1' persists",
+      "sessionStorage_key": "cpad:demo-seeded"
+    },
+    "flyout": {
+      "opens_on_rail_tap": true,
+      "has_close_button": true,
+      "close_testid": "blocky-flyout-close",
+      "close_dismisses_flyout": true
+    },
+    "launch_drawer": {
+      "launch_trigger_opens_drawer": true,
+      "name_input_present": true,
+      "ticker_input_present": true,
+      "wallet_gate_present": true,
+      "launch_button_testid_present": true,
+      "query_launch_1_auto_opens": true,
+      "dark_theme": true
+    },
+    "remix_q_param": {
+      "query": "When fees land, spend half of them buying the coin back.",
+      "auto_build_blocks_within_25s": true,
+      "resulting_blocks": 2,
+      "built_within_seconds": 1,
+      "notes": "AI compile responded within 1s with 2 blocks (EV when creator fees arrive -> FN buy 50 SOL of TOKEN). Fast upstream response."
+    },
+    "bolt_log_drawer": {
+      "chip_opens_drawer": true,
+      "relay_probe_lines_shown": true
+    },
+    "desktop_1440x900": {
+      "blocks": 6,
+      "desktop_palette_visible": true,
+      "menu_button_still_in_dom": true,
+      "no_flyout_shown_by_default": true,
+      "console_errors": 0,
+      "note": "Builder-menu-button testid is present in DOM at desktop but desktop layout keeps the left palette visible and sidebar visible; no regression observed."
+    },
+    "home_390": {
+      "scrollWidth": 390,
+      "no_overflow": true,
+      "site_header_visible": true,
+      "hamburger_present": true
+    },
+    "console_errors": {
+      "builder_mobile": 0,
+      "builder_launch_1": 0,
+      "builder_q_remix": 0,
+      "builder_desktop": 0,
+      "home_mobile": 0
+    }
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Builder.jsx is 712 lines — approaching the 700-line split threshold. Consider extracting flyout, drawer, and demo-seed effect into separate hooks/components for maintainability.",
+    "data-testid coverage is good on the critical interactive surfaces (builder-menu-button, builder-launch-trigger, launch-button, launch-drawer, blocky-flyout-close, block-delete). Family rail buttons and chips row could benefit from stable testids for future automation (currently located geometrically)."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (frontend-only run)", "frontend": "100%" },
+  "test_credentials": "none required (no wallet connect / no auth)",
+  "seed_data_creation": "Demo program auto-seeds on fresh sessionStorage (verified).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All acceptance criteria from the bifrost mirror rebuild pass. Mobile 390x844 geometry matches upstream (page scrollHeight=844=clientHeight, no body scroll, 15 rail buttons 52x46, launch 102x44, run 44 tall, chips single row, header hidden, menu button present). Demo seed works via sessionStorage cpad:demo-seeded and does not reseed after deletion+reload. Flyout open/close works via testid blocky-flyout-close. Launch drawer ?launch=1 auto-opens with dark theme + wallet gate. ?q= remix compiled within 1s to 2 blocks. Desktop and home unchanged. Zero console errors anywhere.",
+  "rca of the issue": "n/a — no issues"
+}
