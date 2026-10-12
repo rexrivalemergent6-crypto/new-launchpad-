@@ -55,7 +55,7 @@ export default function Scoreboard() {
           <span className="w-1.5 h-1.5 rounded-full bg-mint animate-blink" /> relayed live
         </p>
         <h1 className="mt-4 font-extrabold tracking-[-0.03em] text-[clamp(2.4rem,5vw,4.2rem)]">Scoreboard</h1>
-        <p className="mt-3 text-fog max-w-lg">What coins built here have actually done — with their own creator fees.</p>
+        <p className="mt-3 text-fog max-w-lg">The receipts — every payout, burn and buyback the coins' rules have made with their own fees.</p>
       </motion.div>
 
       {isError && (

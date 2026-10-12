@@ -6,7 +6,7 @@ import Marquee from "@/components/Marquee";
 import StatStrip from "@/components/StatStrip";
 import CoinCard from "@/components/CoinCard";
 import { RuleStack, MiniBlock } from "@/components/blocks";
-import { useExplore, useScoreboard } from "@/lib/relay";
+import { useExplore, useScoreboard, mainHref } from "@/lib/relay";
 
 const EASE = [0.16, 1, 0.3, 1];
 
@@ -23,24 +23,24 @@ const maskLine = (children, delay) => (
 );
 
 const TRY_ONE = [
-  "When fees arrive, buy Nvidia with half and airdrop the rest to holders.",
-  "When market cap crosses $100k, burn 10% of the tokens the coin holds.",
-  "Send 20% of fees to a random holder every hour.",
+  "When the vault tops 1 SOL, half buys tokenized TSLA and half rains on holders.",
+  "If price doubles in a day, buy back 5% of supply from fees.",
+  "Every hour, tip one random holder 15% of the fee pot.",
 ];
 
 const MODULES = [
-  { tag: "FN", color: "#E7C85F", title: "Buy back", body: "Use part of the fees to buy the coin back." },
-  { tag: "FN", color: "#E7C85F", title: "Burn", body: "Destroy tokens the coin holds, for good." },
-  { tag: "FN", color: "#E7C85F", title: "Airdrop to holders", body: "Send SOL or the coin to all holders, or to the top ones." },
-  { tag: "FN", color: "#E7C85F", title: "Pay a random holder", body: "One recent buyer or one holder, picked at random." },
-  { tag: "FN", color: "#E7C85F", title: "Hold tokenized stocks", body: "Fees can buy NVDA, TSLA, SPY and more." },
-  { tag: "EV", color: "#D9A33C", title: "React to price or cap", body: "Run a rule when the price moves or market cap crosses a level." },
+  { tag: "FN", color: "#E7C85F", title: "Buy back", body: "Spend a slice of the fees repurchasing the coin off the market." },
+  { tag: "FN", color: "#E7C85F", title: "Burn", body: "Torch tokens straight out of the vault — gone for good." },
+  { tag: "FN", color: "#E7C85F", title: "Airdrop to holders", body: "Rain SOL or the coin itself on every holder, or just the biggest ones." },
+  { tag: "FN", color: "#E7C85F", title: "Tip a random holder", body: "Dice-roll one recent buyer or one holder and send them a payout." },
+  { tag: "FN", color: "#E7C85F", title: "Stack tokenized stocks", body: "Let the fees pile into NVDA, TSLA, SPY and friends." },
+  { tag: "EV", color: "#D9A33C", title: "Watch price or cap", body: "Fire a rule the moment price moves or market cap crosses your line." },
 ];
 
 const STEPS = [
-  { n: "1", title: "Say it", body: "One sentence, in your own words." },
-  { n: "2", title: "See it", body: "It becomes blocks you can read and change." },
-  { n: "3", title: "Launch it", body: "The coin goes live on pump.fun and follows the rules by itself." },
+  { n: "1", title: "Describe it", body: "One plain sentence, your own words, zero forms." },
+  { n: "2", title: "Watch it build", body: "The sentence snaps apart into readable blocks you can tweak." },
+  { n: "3", title: "Ship it", body: "The coin lands on pump.fun and obeys its blocks on its own." },
 ];
 
 export default function Home() {
@@ -73,12 +73,12 @@ export default function Home() {
               className="inline-flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.22em] text-fog border border-line rounded-full px-4 py-2 bg-panel/70"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-mint animate-blink" />
-              a portal for circuit coins
+              the coin launcher, wrapped
             </motion.p>
 
             <h1 className="mt-7 font-extrabold tracking-[-0.035em] leading-[0.98] text-[clamp(2.6rem,7.5vw,6.4rem)]" data-testid="hero-title">
-              {maskLine("One sentence.", 0.15)}
-              {maskLine(<span className="text-mint">Your coin.</span>, 0.3)}
+              {maskLine("One line in.", 0.15)}
+              {maskLine(<span className="text-mint">A coin out.</span>, 0.3)}
             </h1>
 
             <motion.p
@@ -87,8 +87,8 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.5, ease: EASE }}
               className="mt-6 text-fog text-lg leading-relaxed max-w-full"
             >
-              Say what your coin should do. Chip turns it into blocks, and the coin follows them by
-              itself, using its own creator fees.
+              Describe your coin in a single line. Chip breaks it into blocks, and the coin runs them on
+              its own — paid for entirely by its creator fees.
             </motion.p>
 
             <motion.div
@@ -150,61 +150,20 @@ export default function Home() {
       <section className="max-w-[1240px] mx-auto px-6 lg:px-10 py-20 lg:py-28">
         <div className="flex items-end justify-between gap-6 mb-8">
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">Live · since launch</p>
-            <h2 className="mt-3 text-3xl lg:text-5xl font-bold tracking-tight">Everything here is relayed.</h2>
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">Live · since day one</p>
+            <h2 className="mt-3 text-3xl lg:text-5xl font-bold tracking-tight">Fed straight by the relay.</h2>
           </div>
-          <span className="hidden sm:block font-mono text-[11px] text-fog">updates straight from circuitdev.fun</span>
+          <span className="hidden sm:block font-mono text-[11px] text-fog">nothing here is stale — numbers stream in</span>
         </div>
         <StatStrip />
       </section>
 
-      {/* ============ JUST LAUNCHED ============ */}
+      {/* ============ BLOCK POWERS (templates, moved up) ============ */}
       <section className="max-w-[1240px] mx-auto px-6 lg:px-10 pb-20 lg:pb-28">
-        <div className="flex items-end justify-between gap-6 mb-8">
-          <h2 className="text-3xl lg:text-5xl font-bold tracking-tight">Just launched</h2>
-          <Link to="/explore" data-testid="see-all-explore" className="group inline-flex items-center gap-1.5 text-mint font-medium">
-            See all <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-testid="just-launched-grid">
-          {coins.map((c, i) => (
-            <CoinCard key={c.slug || i} coin={c} index={i} />
-          ))}
-        </div>
-      </section>
-
-      {/* ============ HOW IT WORKS ============ */}
-      <section className="border-y border-line bg-panel/40">
-        <div className="max-w-[1240px] mx-auto px-6 lg:px-10 py-20 lg:py-28">
-          <h2 className="text-3xl lg:text-5xl font-bold tracking-tight">How it works</h2>
-          <div className="mt-12 grid md:grid-cols-3 gap-5">
-            {STEPS.map((s, i) => (
-              <motion.div
-                key={s.n}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.6, delay: i * 0.1, ease: EASE }}
-                className="border border-line rounded-2xl bg-ink p-8 hover:border-mint/30 transition-colors"
-              >
-                <span className="font-mono text-mint text-sm">0{s.n}</span>
-                <h3 className="mt-4 text-2xl font-bold">{s.title}</h3>
-                <p className="mt-3 text-fog leading-relaxed">{s.body}</p>
-              </motion.div>
-            ))}
-          </div>
-          <div className="mt-10">
-            <MiniBlock tag="EV" color="#D9A33C">“When fees arrive, buy Nvidia with half and airdrop the rest to holders.”</MiniBlock>
-          </div>
-        </div>
-      </section>
-
-      {/* ============ MODULES ============ */}
-      <section className="max-w-[1240px] mx-auto px-6 lg:px-10 py-20 lg:py-28">
         <div className="flex items-end justify-between gap-6 mb-10">
-          <h2 className="text-3xl lg:text-5xl font-bold tracking-tight">What a coin can do</h2>
+          <h2 className="text-3xl lg:text-5xl font-bold tracking-tight">What your rules can do</h2>
           <Link to="/library" data-testid="see-all-library" className="group hidden sm:inline-flex items-center gap-1.5 text-mint font-medium">
-            See all blocks <ArrowUpRight size={16} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
+            The full 134-block library <ArrowUpRight size={16} className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -225,18 +184,59 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ SCOREBOARD TEASER ============ */}
+      {/* ============ FRESH OFF THE PAD ============ */}
+      <section className="max-w-[1240px] mx-auto px-6 lg:px-10 pb-20 lg:pb-28">
+        <div className="flex items-end justify-between gap-6 mb-8">
+          <h2 className="text-3xl lg:text-5xl font-bold tracking-tight">Fresh off the pad</h2>
+          <Link to="/explore" data-testid="see-all-explore" className="group inline-flex items-center gap-1.5 text-mint font-medium">
+            See all <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-testid="just-launched-grid">
+          {coins.map((c, i) => (
+            <CoinCard key={c.slug || i} coin={c} index={i} />
+          ))}
+        </div>
+      </section>
+
+      {/* ============ HOW IT WORKS ============ */}
+      <section className="border-y border-line bg-panel/40">
+        <div className="max-w-[1240px] mx-auto px-6 lg:px-10 py-20 lg:py-28">
+          <h2 className="text-3xl lg:text-5xl font-bold tracking-tight">How it goes down</h2>
+          <div className="mt-12 grid md:grid-cols-3 gap-5">
+            {STEPS.map((s, i) => (
+              <motion.div
+                key={s.n}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.6, delay: i * 0.1, ease: EASE }}
+                className="border border-line rounded-2xl bg-ink p-8 hover:border-mint/30 transition-colors"
+              >
+                <span className="font-mono text-mint text-sm">0{s.n}</span>
+                <h3 className="mt-4 text-2xl font-bold">{s.title}</h3>
+                <p className="mt-3 text-fog leading-relaxed">{s.body}</p>
+              </motion.div>
+            ))}
+          </div>
+          <div className="mt-10">
+            <MiniBlock tag="EV" color="#D9A33C">“When the vault tops 1 SOL, half buys tokenized TSLA and half rains on holders.”</MiniBlock>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ FLYWHEEL TEASER ============ */}
       <section className="border-t border-line bg-panel/40">
         <div className="max-w-[1240px] mx-auto px-6 lg:px-10 py-20 lg:py-28">
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">The circuit flywheel</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">The loop that never stops</p>
           <h2 className="mt-3 text-3xl lg:text-5xl font-bold tracking-tight max-w-2xl">
-            Launch fees buy back and burn Circuit.
+            Launch fees loop back as burns.
           </h2>
           <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-5" data-testid="scoreboard-teaser">
             {[
-              { label: "Paid out to holders", value: board?.totals?.paidSol?.text, unit: "SOL" },
-              { label: "Tokens burned", value: board?.totals?.burnedTokens?.text, unit: "$CIRCUIT" },
-              { label: "Bought back", value: board?.totals?.buybackSol?.text, unit: "SOL" },
+              { label: "Sent to holders", value: board?.totals?.paidSol?.text, unit: "SOL" },
+              { label: "Supply torched", value: board?.totals?.burnedTokens?.text, unit: "$CIRCUIT" },
+              { label: "Repurchased", value: board?.totals?.buybackSol?.text, unit: "SOL" },
             ].map((t, i) => (
               <div key={t.label} className="border border-line rounded-2xl bg-ink p-8">
                 <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-fog">{t.label}</div>
@@ -247,7 +247,7 @@ export default function Home() {
             ))}
           </div>
           <Link to="/scoreboard" data-testid="scoreboard-link" className="group mt-8 inline-flex items-center gap-1.5 text-mint font-medium">
-            See what coins have done <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            The full receipts <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       </section>
@@ -257,9 +257,9 @@ export default function Home() {
         <div className="absolute inset-0 dotgrid-fine opacity-60 pointer-events-none" />
         <div className="relative max-w-[1240px] mx-auto px-6 lg:px-10 py-24 lg:py-36 text-center">
           <h2 className="font-extrabold tracking-[-0.03em] leading-[1.02] text-[clamp(2.4rem,6vw,5rem)]" data-testid="footer-cta">
-            One sentence.
+            One line in.
             <br />
-            <span className="text-mint">Your coin.</span>
+            <span className="text-mint">A coin out.</span>
           </h2>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
             <button
@@ -269,22 +269,22 @@ export default function Home() {
             >
               Build it <ArrowRight size={18} />
             </button>
-            <Link
-              to="/builder"
+            <button
               data-testid="footer-blocks-button"
+              onClick={() => window.location.assign("/builder")}
               className="inline-flex items-center gap-2 rounded-xl border border-line bg-panel hover:border-mint/40 font-medium text-lg px-8 py-4 transition-colors"
             >
-              Build with blocks <ArrowUpRight size={18} />
-            </Link>
+              Stack it yourself <ArrowUpRight size={18} />
+            </button>
           </div>
 
           <div className="mt-20 pt-8 border-t border-line flex flex-col sm:flex-row items-center justify-between gap-4 text-left">
             <p className="font-mono text-[11px] text-fog/80 max-w-md leading-relaxed">
-              CoinPad is an independent portal. Every launch, wallet signature and payout happens on
-              circuit.dev — all data shown here is relayed live.
+              CoinPad is its own front door to the circuit: your wallet signs, our relay does the running,
+              and every number you see streams in live.
             </p>
             <div className="flex items-center gap-5 font-mono text-[11px] text-fog">
-              <Link to="/library" data-testid="footer-library-link" className="hover:text-mint transition-colors">block library</Link>
+              <Link to="/library" className="hover:text-mint transition-colors">all 134 blocks</Link>
               <span>relay: <span className="text-mint">live</span></span>
             </div>
           </div>

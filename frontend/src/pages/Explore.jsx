@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import CoinCard from "@/components/CoinCard";
 import { useExplore } from "@/lib/relay";
 
@@ -27,8 +27,8 @@ export default function Explore() {
         </p>
         <h1 className="mt-4 font-extrabold tracking-[-0.03em] text-[clamp(2.4rem,5vw,4.2rem)]">Explore</h1>
         <p className="mt-3 text-fog max-w-lg">
-          Every coin launched through Circuit, relayed live from the main site. Launching happens there —
-          watching happens here.
+          Every coin off the pad, streamed in through the relay. Filter what you like, then jump straight
+          into the builder — no detours.
         </p>
         <a
           href="/builder"

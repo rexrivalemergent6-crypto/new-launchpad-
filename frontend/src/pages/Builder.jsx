@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Plus, X, ArrowRight, Sparkles, Rocket, KeyRound } from "lucide-react";
+import { ArrowUpRight, Plus, X, Sparkles, Rocket, KeyRound } from "lucide-react";
 import { Tag, SelectPill, NumPill, AmtPill, TokenPill } from "@/components/blocks";
 import { cPost, aiPassword, useExplore } from "@/lib/relay";
 import { useWallet, signInWithWallet } from "@/lib/walletStore";
@@ -10,10 +10,10 @@ const EASE = [0.16, 1, 0.3, 1];
 const CYCLES = [10, 25, 50, 75, 100];
 let nextId = 100;
 
-const RECIPES = [
-  "When fees arrive, buy Nvidia with half and airdrop the rest to holders.",
-  "When market cap crosses $100k, burn 10% of the tokens the coin holds.",
-  "Send 20% of fees to a random holder every hour.",
+const STARTERS = [
+  "When the vault tops 1 SOL, half buys tokenized TSLA and half rains on holders.",
+  "If price doubles in a day, buy back 5% of supply from fees.",
+  "Every hour, tip one random holder 15% of the fee pot.",
 ];
 
 function EventRow({ onDelete }) {
@@ -175,19 +175,19 @@ export default function Builder() {
   const proof = useMemo(() => {
     const cards = explore?.cards || [];
     return [
-      { label: "coins using AI", value: cards.filter((c) => c.usesAi).length },
-      { label: "holding tokenized stocks", value: cards.filter((c) => c.usesStocks).length },
-      { label: "that buy back", value: cards.filter((c) => (c.does || []).includes("buysback")).length },
-      { label: "that burn", value: cards.filter((c) => (c.does || []).includes("burns")).length },
+      { label: "coins running AI", value: cards.filter((c) => c.usesAi).length },
+      { label: "holding stocks", value: cards.filter((c) => c.usesStocks).length },
+      { label: "buying themselves back", value: cards.filter((c) => (c.does || []).includes("buysback")).length },
+      { label: "burning supply", value: cards.filter((c) => (c.does || []).includes("burns")).length },
     ];
   }, [explore]);
 
   return (
     <div className="max-w-[1240px] mx-auto px-6 lg:px-10 pt-28 lg:pt-14 pb-24">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: EASE }}>
-        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">the builder</p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-mint">the workshop</p>
         <h1 className="mt-4 font-extrabold tracking-[-0.03em] text-[clamp(2.4rem,5vw,4.2rem)] leading-[1.02]">
-          Say it. <span className="text-mint">Or snap it.</span>
+          Type it. <span className="text-mint">Or stack it.</span>
         </h1>
       </motion.div>
 
@@ -207,14 +207,14 @@ export default function Builder() {
           </button>
         </div>
         <p className="mt-3 font-mono text-[11px] text-fog">
-          chip turns your sentence into blocks — relayed live through coinpad, no account needed anywhere else
+          chip reads your line and snaps it into blocks — the whole thing runs through coinpad's relay
         </p>
       </motion.div>
 
       {needPassword && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: EASE }}
           className="mt-5 max-w-2xl border border-yel/40 bg-yel/5 rounded-2xl p-5" data-testid="ai-password-panel">
-          <p className="flex items-center gap-2 font-mono text-[12px] text-yel"><KeyRound size={14} /> circuit asked for the AI password</p>
+          <p className="flex items-center gap-2 font-mono text-[12px] text-yel"><KeyRound size={14} /> the AI wants its password</p>
           <div className="mt-3 flex gap-2">
             <input value={password} onChange={(e) => setPassword(e.target.value)} data-testid="ai-password-input" type="password" placeholder="AI password"
               className="flex-1 bg-transparent border border-line rounded-xl px-4 py-2.5 text-sm outline-none focus:border-yel/60" />
@@ -245,7 +245,7 @@ export default function Builder() {
                   <CompiledBlock key={`${b.label}-${i}`} label={b.label} value={b.value} i={i} />
                 ))}
                 <button onClick={() => setCompiled(null)} data-testid="clear-compiled" className="self-start font-mono text-[11px] text-fog hover:text-mint transition-colors mt-2">
-                  ← back to blank canvas
+                  ← back to a blank canvas
                 </button>
               </>
             ) : (
@@ -256,16 +256,33 @@ export default function Builder() {
                   return <ActionGroup key={b.id} chance={chance} amt={amt} onCycleChance={cycle(setChance, chance)} onCycleAmt={cycle(setAmt, amt)} onDelete={() => remove(b.id)} />;
                 })}
                 {blocks.length === 0 && (
-                  <p className="text-fog font-mono text-sm py-16 text-center">empty canvas — ask chip, or snap a block from the palette</p>
+                  <p className="text-fog font-mono text-sm py-16 text-center">empty canvas — ask chip, or grab a block from the shelf</p>
                 )}
               </>
             )}
           </div>
         </motion.div>
 
-        {/* side column */}
+        {/* side column — starter ideas first, then launch */}
         <div className="space-y-5">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3, ease: EASE }}
+            className="border border-line rounded-2xl bg-panel p-6">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">starter ideas</p>
+            <div className="space-y-2">
+              {STARTERS.map((r, i) => (
+                <Link key={i} data-testid={`recipe-fill-${i}`} to={`/builder?q=${encodeURIComponent(r)}`}
+                  className="block text-sm text-fog hover:text-snow border border-line rounded-xl px-4 py-3 hover:border-mint/40 transition-colors leading-relaxed">
+                  {r}
+                </Link>
+              ))}
+            </div>
+            <Link data-testid="builder-all-recipes" to="/recipes"
+              className="mt-4 flex items-center justify-center gap-2 w-full rounded-xl border border-line hover:border-mint/40 hover:text-mint text-fog font-semibold py-3 transition-colors text-sm">
+              All 22 blueprints
+            </Link>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.36, ease: EASE }}
             className="border border-line rounded-2xl bg-panel p-6" data-testid="launch-panel">
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">launch on pump.fun</p>
             <div className="space-y-3">
@@ -278,7 +295,7 @@ export default function Builder() {
             {!signedIn && (
               <div className="mt-4 border border-yel/30 bg-yel/5 rounded-xl p-4" data-testid="launch-wallet-gate">
                 <p className="font-mono text-[11px] text-yel leading-relaxed">
-                  {wallet ? "one more step — sign the message in your wallet to unlock launching" : "connecting your wallet signs you in — nothing leaves your wallet without your signature"}
+                  {wallet ? "one last step — sign the note in your wallet to unlock launching" : "connecting your wallet signs you in — nothing moves without your signature"}
                 </p>
                 <button onClick={() => signInWithWallet()} data-testid="launch-signin-button"
                   className="mt-3 w-full rounded-xl border border-yel/50 text-yel hover:bg-yel/10 font-semibold py-2.5 text-sm transition-colors">
@@ -300,15 +317,15 @@ export default function Builder() {
                     launched ✓ {launchResult.data?.mint || launchResult.data?.url || JSON.stringify(launchResult.data).slice(0, 220)}
                   </>
                 ) : (
-                  <>upstream said: {launchResult.message}{launchResult.data ? ` — ${JSON.stringify(launchResult.data).slice(0, 220)}` : ""}</>
+                  <>relay said: {launchResult.message}{launchResult.data ? ` — ${JSON.stringify(launchResult.data).slice(0, 220)}` : ""}</>
                 )}
               </div>
             )}
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.38, ease: EASE }}
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.42, ease: EASE }}
             className="border border-line rounded-2xl bg-panel p-6" data-testid="live-proof">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">on circuit right now · relayed</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">on the pad right now · relayed</p>
             <div className="grid grid-cols-2 gap-4">
               {proof.map((p, i) => (
                 <div key={p.label}>
@@ -319,26 +336,9 @@ export default function Builder() {
             </div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.46, ease: EASE }}
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.48, ease: EASE }}
             className="border border-line rounded-2xl bg-panel p-6">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">try a recipe</p>
-            <div className="space-y-2">
-              {RECIPES.map((r, i) => (
-                <Link key={i} data-testid={`recipe-fill-${i}`} to={`/builder?q=${encodeURIComponent(r)}`}
-                  className="block text-sm text-fog hover:text-snow border border-line rounded-xl px-4 py-3 hover:border-mint/40 transition-colors leading-relaxed">
-                  {r}
-                </Link>
-              ))}
-            </div>
-            <Link data-testid="builder-all-recipes" to="/recipes"
-              className="mt-4 flex items-center justify-center gap-2 w-full rounded-xl border border-line hover:border-mint/40 hover:text-mint text-fog font-semibold py-3 transition-colors text-sm">
-              All 22 recipes
-            </Link>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.52, ease: EASE }}
-            className="border border-line rounded-2xl bg-panel p-6">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">block palette</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-fog mb-4">block shelf</p>
             <div className="flex flex-col gap-2.5">
               <button data-testid="palette-add-event" onClick={() => add("event")}
                 className="flex items-center justify-between border border-line rounded-xl px-4 py-3 hover:border-amberx/60 transition-colors text-left">

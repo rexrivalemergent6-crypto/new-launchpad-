@@ -1,5 +1,6 @@
 import os
 import time
+import json
 import uuid
 import logging
 from pathlib import Path
@@ -88,6 +89,20 @@ async def relay_stats():
     return json_response(r)
 
 
+OFFICIAL_MINT_PREFIX = "EcZndA"
+
+
+def is_pad_coin(card: dict) -> bool:
+    """Only coins actually launched through the circuit pad — no platform entries."""
+    if not card.get("mint"):
+        return False
+    if str(card.get("mint", "")).startswith(OFFICIAL_MINT_PREFIX):
+        return False
+    if str(card.get("slug", "")).lower() in ("circuit", "circuit-coin", "official"):
+        return False
+    return bool(card.get("state"))
+
+
 @api_router.get("/relay/explore")
 async def relay_explore(request: Request):
     params = dict(request.query_params)
@@ -96,8 +111,17 @@ async def relay_explore(request: Request):
     if cached:
         return Response(content=cached[0], media_type="application/json")
     r = await upstream("api/explore", params)
-    cache_set(key, (r.content,), TTL_JSON)
-    return json_response(r)
+    if r.status_code == 200:
+        try:
+            data = r.json()
+            data["cards"] = [c for c in data.get("cards", []) if is_pad_coin(c)]
+            content = json.dumps(data).encode()
+        except Exception:
+            content = r.content
+    else:
+        content = r.content
+    cache_set(key, (content,), TTL_JSON)
+    return Response(content=content, media_type="application/json", status_code=r.status_code)
 
 
 @api_router.get("/relay/scoreboard")

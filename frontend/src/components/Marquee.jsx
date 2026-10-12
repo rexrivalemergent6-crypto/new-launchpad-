@@ -2,8 +2,8 @@ const ITEMS = [
   "Launches on pump.fun",
   "Rules locked on Solana",
   "Runs on its own fees",
-  "Coins that buy tokenized stocks",
-  "One sentence. Your coin.",
+  "Coins that stack tokenized stocks",
+  "One line in. A coin out.",
 ];
 
 export default function Marquee() {

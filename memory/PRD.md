@@ -30,3 +30,11 @@
 ## Backlog
 - P1: relayed coin detail pages (/c/<mint>) in our UI; live trade-pulse feed
 - P2: watchlist (localStorage), share cards, auto-refresh ticker band
+
+## Copy originality pass (2026-10-12)
+- All static copy rewritten in our own voice: tagline "One line in. A coin out.", all section headings, how-it-works steps, module blurbs, family descriptions, stocks/flywheel/explore/scoreboard texts, footer.
+- All 22 recipes paraphrased (original titles + sentences, same rule meanings); hero chips + builder starter ideas are original examples.
+- Templates relocated: block-powers section moved above the coins grid on Home; starter-ideas panel moved to the top of the Builder side column.
+- Live relayed data (coin names, stats, block catalog) is upstream data and stays verbatim — that's the feed itself, not copied copy.
+- Discover/Explore feed is server-filtered: only coins launched through the pad (mint + state present), official platform coin and non-launcher entries hard-filtered in relay_explore.
+- Library page: full 134-block catalog restored (live /api/relay/library + offline snapshot fallback), search, family/module views, per-block "Ask Chip" prefill.
