@@ -70,3 +70,10 @@
 - Removed the AI password panel entirely from Builder.
 - New programToTree() in blockyKit maps the upstream program JSON (scripts → event/body/if/condition/then/else + loose) into our nested blocky tree; Ask Bolt now renders REAL upstream programs as nested puzzle blocks (verified live: "when creator fees" → "if treasury SOL > 2 — then" → "buy back 5 SOL of the pot", 3 blocks).
 - Code view shows the raw upstream program JSON when present.
+
+## Drag & drop (2026-10-12, round 7)
+- Confirmed the upstream builder is drag-based (draggable/onDragStart/dataTransfer in their bundle) — replicated in our blocky workshop with HTML5 DnD, zero new deps:
+  - Palette blocks are draggable; dropping on the canvas root adds them.
+  - Container blocks (hat/if) are drop targets — dropping inside nests the block (flat renderer, no recursion).
+  - Existing canvas blocks can be dragged to move (root or into containers), with a descendant-cycle guard (containsNode/findNode helpers).
+- Verified live with Playwright mouse drag: palette → root created node 1; palette → slot nested node 2 with "IN" label; log lines recorded each drop.

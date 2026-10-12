@@ -46,7 +46,7 @@ export function flattenTree(nodes, depth = 0, branchOf = null, out = []) {
   return out;
 }
 
-export function BlockRow({ node, depth, branchOf, tree, setTree, sel, setSel }) {
+export function BlockRow({ node, depth, branchOf, tree, setTree, sel, setSel, onDropInto }) {
   const def = node.def;
   const color = colorOf(node.kindCode);
 
@@ -60,7 +60,11 @@ export function BlockRow({ node, depth, branchOf, tree, setTree, sel, setSel }) 
         <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-fog/60 mb-1 ml-1">{branchOf}</div>
       )}
       <motion.div layout initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="blk blk-tab group inline-flex flex-wrap items-center gap-2 px-3.5 py-2.5 max-w-full" style={{ "--bc": color }}>
+        draggable
+        onDragStart={(e) => { e.dataTransfer.setData("text/plain", "move:" + node.id); e.dataTransfer.effectAllowed = "move"; }}
+        onDragOver={(e) => { if (isHat(def) || isBranch(def)) e.preventDefault(); }}
+        onDrop={(e) => { if (isHat(def) || isBranch(def)) { e.preventDefault(); e.stopPropagation(); onDropInto && onDropInto(node, e.dataTransfer.getData("text/plain")); } }}
+        className="blk blk-tab group inline-flex flex-wrap items-center gap-2 px-3.5 py-2.5 max-w-full cursor-grab active:cursor-grabbing" style={{ "--bc": color }}>
         <Tag k={node.kindCode} />
         {partsOf(def).map((p, i) => (
           <FieldPill key={i} part={p} value={node.vals[p.n || i]} onChange={(v) => setVal(tree, setTree, node.id, p.n || i, v)} />
@@ -68,11 +72,14 @@ export function BlockRow({ node, depth, branchOf, tree, setTree, sel, setSel }) 
         <button onClick={remove} data-testid="block-delete" className="opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity text-fog ml-1"><X size={13} /></button>
       </motion.div>
       {(isHat(def) || isBranch(def)) && (
-        <button onClick={snap} data-testid={`blocky-slot-${node.id}`}
-          className={`mt-1.5 ml-6 font-mono text-[10px] px-2.5 py-1.5 rounded-lg border transition-colors ${
-            snappingHere ? "border-mint/60 text-mint bg-mint-deep/40" : "border-line text-fog/70 hover:text-snow"
+        <button onClick={snap}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => { e.preventDefault(); e.stopPropagation(); onDropInto && onDropInto(node, e.dataTransfer.getData("text/plain")); }}
+          data-testid={`blocky-slot-${node.id}`}
+          className={`mt-1.5 ml-6 font-mono text-[10px] px-2.5 py-1.5 rounded-lg border border-dashed transition-colors ${
+            snappingHere ? "border-mint/60 text-mint bg-mint-deep/40" : "border-line text-fog/70 hover:text-snow hover:border-mint/40"
           }`}>
-          {isBranch(def) ? "+ snap into then / else" : "+ snap a block inside"}
+          {isBranch(def) ? "+ drop or snap into then / else" : "+ drop or snap a block inside"}
         </button>
       )}
     </div>
@@ -99,6 +106,25 @@ export function pushInto(nodes, parentId, branch, node) {
     return { ...n, children: Object.fromEntries(Object.entries(n.children).map(([k, v]) => [k, walk(v)])) };
   });
   return walk(nodes);
+}
+
+export function containsNode(nodes, ancestorId, id) {
+  const walk = (list) => list.some((n) => n.id === ancestorId
+    ? collect(n).includes(id)
+    : walk(Object.values(n.children).flat()));
+  const collect = (n) => [n.id, ...Object.values(n.children).flat().map((c) => collect(c)).flat()];
+  return walk(nodes);
+}
+
+export function findNode(nodes, id) {
+  for (const n of nodes) {
+    if (n.id === id) return n;
+    for (const list of Object.values(n.children)) {
+      const hit = findNode(list, id);
+      if (hit) return hit;
+    }
+  }
+  return null;
 }
 
 export function countNodes(nodes) {

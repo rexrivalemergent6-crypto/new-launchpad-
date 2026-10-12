@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowUpRight, X, Sparkles, Rocket, KeyRound, Play, Code2, StickyNote, Pencil, ChevronDown, Layers, Bot } from "lucide-react";
 import { cPost, aiPassword, useExplore, useLibrary } from "@/lib/relay";
 import { useWallet, signInWithWallet } from "@/lib/walletStore";
-import { BlockRow, flattenTree, pushInto, countNodes, toPlainEnglish, toBlocks, CompiledBlock, colorOf, programToTree } from "@/components/blockyKit";
+import { BlockRow, flattenTree, pushInto, strip, containsNode, findNode, countNodes, toPlainEnglish, toBlocks, CompiledBlock, colorOf, programToTree } from "@/components/blockyKit";
 
 const EASE = [0.16, 1, 0.3, 1];
 let nextId = 1000;
@@ -53,6 +53,45 @@ export default function Builder() {
   const palette = useMemo(() => blocks.filter((b) => kindFor[b.kind] === selFamily), [blocks, kindFor, selFamily]);
 
   const say = (line) => setLog((l) => [...l.slice(-5), line]);
+
+  const addByType = (type) => {
+    const def = blocks.find((b) => b.type === type);
+    if (!def) return;
+    addFromPalette(def);
+  };
+
+  const handleDropInto = (targetNode, text) => {
+    if (!text) return;
+    const [kind, _, val] = [text.split(":")[0], null, text.split(":").slice(1).join(":")];
+    if (kind === "new") {
+      const def = blocks.find((b) => b.type === val);
+      if (!def) return;
+      setTree((t) => pushInto(t, targetNode.id, /^if /.test(targetNode.def?.label || "") ? "then" : "in", { id: nextId++, def, kindCode: kindFor[def.kind] || "MO", vals: {}, children: {} }));
+      say(`dropped into: ${targetNode.def?.label || ""}`);
+    } else if (kind === "move") {
+      const movingId = val;
+      if (movingId === targetNode.id || containsNode(tree, movingId, targetNode.id)) return;
+      const moving = findNode(tree, movingId);
+      if (!moving) return;
+      setTree((t) => pushInto(strip(t, movingId), targetNode.id, /^if /.test(targetNode.def?.label || "") ? "then" : "in", moving));
+      say(`moved into: ${targetNode.def?.label || ""}`);
+    }
+  };
+
+  const handleRootDrop = (e) => {
+    e.preventDefault();
+    const text = e.dataTransfer.getData("text/plain");
+    if (!text) return;
+    const [kind, _, val] = [text.split(":")[0], null, text.split(":").slice(1).join(":")];
+    if (kind === "new") {
+      addByType(val);
+    } else if (kind === "move") {
+      const moving = findNode(tree, val);
+      if (!moving) return;
+      setTree((t) => [...strip(t, val), moving]);
+      say("moved to the top level");
+    }
+  };
 
   const addFromPalette = (def) => {
     const node = { id: nextId++, def, kindCode: kindFor[def.kind] || "MO", vals: {}, children: {} };
@@ -260,9 +299,11 @@ export default function Builder() {
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col gap-3" data-testid="blocky-canvas">
+              <div className="flex flex-col gap-3 min-h-[420px]" data-testid="blocky-canvas"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleRootDrop}>
                 {flattenTree(tree).map(({ node, depth, branchOf }) => (
-                  <BlockRow key={node.id} node={node} depth={depth} branchOf={branchOf} tree={tree} setTree={setTree} sel={sel} setSel={setSel} />
+                  <BlockRow key={node.id} node={node} depth={depth} branchOf={branchOf} tree={tree} setTree={setTree} sel={sel} setSel={setSel} onDropInto={handleDropInto} />
                 ))}
                 {!tree.length && (
                   <p className="text-fog font-mono text-sm py-20 text-center">pick a family on the rail and snap your first block — or ask bolt above</p>
@@ -277,8 +318,10 @@ export default function Builder() {
             </p>
             <div className="space-y-2">
               {palette.map((b) => (
-                <button key={b.type} onClick={() => addFromPalette(b)} data-testid={`palette-${b.type}`}
-                  className="w-full text-left border border-line rounded-xl px-3 py-2.5 hover:border-mint/50 transition-colors" style={{ borderLeft: `3px solid ${colorOf(kindFor[b.kind])}` }}>
+                <button key={b.type} onClick={() => addFromPalette(b)} draggable
+                  onDragStart={(e) => { e.dataTransfer.setData("text/plain", "new:" + b.type); e.dataTransfer.effectAllowed = "copy"; }}
+                  data-testid={`palette-${b.type}`}
+                  className="w-full text-left border border-line rounded-xl px-3 py-2.5 hover:border-mint/50 transition-colors cursor-grab active:cursor-grabbing" style={{ borderLeft: `3px solid ${colorOf(kindFor[b.kind])}` }}>
                   <div className="font-mono text-[11px] text-snow/85 leading-snug">{b.label}</div>
                   <div className="font-mono text-[9px] text-fog mt-1 line-clamp-1">{b.tooltip}</div>
                 </button>
