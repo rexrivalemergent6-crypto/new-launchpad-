@@ -125,6 +125,71 @@ export function CompiledBlock({ label, value, i }) {
   );
 }
 
+/* map an upstream program (compiled by bolt) into our blocky tree */
+const OPS = { gte: "≥", lte: "≤", gt: ">", lt: "<", eq: "=" };
+
+function describeValue(v) {
+  if (v == null) return "?";
+  if (typeof v !== "object") return String(v);
+  switch (v.type) {
+    case "treasury": return `treasury ${v.asset || ""}`.trim();
+    case "balance": return `wallet ${v.asset || "SOL"}`;
+    case "claimable_fees": return "the pot";
+    case "price_usd": return "price";
+    case "market_cap": return "market cap";
+    case "holders": return "holder count";
+    case "volume": return "volume";
+    default: return v.type ? v.type.replace(/_/g, " ") : String(v.value ?? "?");
+  }
+}
+
+export function describeAction(a) {
+  if (!a || !a.type) return "do something";
+  switch (a.type) {
+    case "sim_buy": return `buy back ${a.amount}${a.unit === "SOL" ? " SOL" : "%"} of ${a.pctOf === "claimable_fees" || !a.pctOf ? "the pot" : a.pctOf.replace(/_/g, " ")}`;
+    case "sim_sell": return `sell ${a.amount}${a.unit === "SOL" ? " SOL" : "%"} of the pot`;
+    case "burn": return `burn ${a.amount ?? ""}% of what it holds`;
+    case "airdrop": return `airdrop to holders`;
+    case "payout": return `pay a holder`;
+    case "post": return `post to the feed`;
+    case "ai_text": return `ask the AI to write something`;
+    case "buy_stock": return `buy tokenized ${a.asset || "stock"}`;
+    default: return a.type.replace(/_/g, " ");
+  }
+}
+
+function mapBody(items) {
+  return (items || []).map((a) => {
+    if (a.type === "if") {
+      return {
+        id: `if-${a.id || nextUid()}`,
+        kindCode: "LG",
+        def: { label: `if ${describeValue(a.condition?.a)} ${OPS[a.condition?.op] || a.condition?.op || "?"} ${describeValue(a.condition?.b)} — then`, type: "if", shape: "statement" },
+        vals: {},
+        children: { then: mapBody(a.then), else: mapBody(a.else) },
+      };
+    }
+    return { id: `fn-${a.id || nextUid()}`, kindCode: "FN", def: { label: describeAction(a), type: a.type }, vals: {}, children: {} };
+  });
+}
+
+let uidCounter = 5000;
+function nextUid() { return ++uidCounter; }
+
+export function programToTree(program) {
+  const scripts = (program?.scripts || []).map((s, i) => ({
+    id: `ev-${i}-${nextUid()}`,
+    kindCode: "EV",
+    def: { label: `when ${(s.event?.type || "event").replace(/_/g, " ")}`, type: s.event?.type, shape: "hat" },
+    vals: {},
+    children: { in: mapBody(s.body) },
+  }));
+  const loose = (program?.loose || []).map((a) => ({
+    id: `fn-${a.id || nextUid()}`, kindCode: "FN", def: { label: describeAction(a), type: a.type }, vals: {}, children: {},
+  }));
+  return [...scripts, ...loose];
+}
+
 export function toBlocks(data) {
   if (!data || typeof data !== "object") return [];
   if (Array.isArray(data.rules)) return data.rules.map((r, i) => ({ label: r?.op || r?.type || `rule ${i + 1}`, value: JSON.stringify(r) }));

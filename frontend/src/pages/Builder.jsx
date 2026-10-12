@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowUpRight, X, Sparkles, Rocket, KeyRound, Play, Code2, StickyNote, Pencil, ChevronDown, Layers, Bot } from "lucide-react";
 import { cPost, aiPassword, useExplore, useLibrary } from "@/lib/relay";
 import { useWallet, signInWithWallet } from "@/lib/walletStore";
-import { BlockRow, flattenTree, pushInto, countNodes, toPlainEnglish, toBlocks, CompiledBlock, colorOf } from "@/components/blockyKit";
+import { BlockRow, flattenTree, pushInto, countNodes, toPlainEnglish, toBlocks, CompiledBlock, colorOf, programToTree } from "@/components/blockyKit";
 
 const EASE = [0.16, 1, 0.3, 1];
 let nextId = 1000;
@@ -29,9 +29,8 @@ export default function Builder() {
   const [sentence, setSentence] = useState(params.get("q") || "");
   const [compiling, setCompiling] = useState(false);
   const [compiled, setCompiled] = useState(null);
+  const [rawProgram, setRawProgram] = useState(null);
   const [compileError, setCompileError] = useState(null);
-  const [needPassword, setNeedPassword] = useState(false);
-  const [password, setPassword] = useState("");
   const [log, setLog] = useState(["CodePad relay ready — ask bolt or snap blocks."]);
 
   const [name, setName] = useState("");
@@ -79,7 +78,6 @@ export default function Builder() {
       say(`bolt checked it — ${toBlocks(data).length} blocks recognized`);
       setCompiled(data);
     } catch (e) {
-      if (e.status === 401) setNeedPassword(true);
       say(`bolt could not check: ${e.message}`);
     } finally {
       setCompiling(false);
@@ -91,25 +89,25 @@ export default function Builder() {
     if (!sentence.trim()) return;
     setCompiling(true);
     setCompileError(null);
-    setNeedPassword(false);
     say(`bolt, compile: ${sentence.trim()}`);
     try {
       const data = await cPost("/compile", { prompt: sentence.trim(), coinTicker: ticker || undefined });
-      setCompiled(data);
-      say(`bolt answered — ${toBlocks(data).length} blocks`);
+      if (data.program) {
+        setTree(programToTree(data.program));
+        setRawProgram(data.program);
+        setCompiled(null);
+        say(`bolt built ${data.program.scripts?.length || 0} script(s) — no password, no signup`);
+        if (data.explanation) say(`bolt explains: ${String(data.explanation).slice(0, 120)}`);
+      } else {
+        setCompiled(data);
+        say(`bolt answered — ${toBlocks(data).length} blocks`);
+      }
     } catch (e) {
-      if (e.status === 401) setNeedPassword(true);
       setCompileError(e.message);
       say(`bolt could not: ${e.message}`);
     } finally {
       setCompiling(false);
     }
-  }
-
-  function savePassword() {
-    aiPassword.set(password.trim());
-    setNeedPassword(false);
-    askBolt();
   }
 
   async function launch() {
@@ -230,18 +228,7 @@ export default function Builder() {
         </div>
       </motion.div>
 
-      {needPassword && (
-        <div className="mt-4 border border-yel/40 bg-yel/5 rounded-2xl p-5" data-testid="ai-password-panel">
-          <p className="flex items-center gap-2 font-mono text-[12px] text-yel"><KeyRound size={14} /> the AI wants its password</p>
-          <div className="mt-3 flex gap-2">
-            <input value={password} onChange={(e) => setPassword(e.target.value)} data-testid="ai-password-input" type="password" placeholder="AI password"
-              className="flex-1 bg-transparent border border-line rounded-xl px-4 py-2.5 text-sm outline-none focus:border-yel/60" />
-            <button onClick={savePassword} data-testid="ai-password-save" className="rounded-xl bg-yel/90 hover:bg-yel text-[#221a04] font-bold px-5 text-sm transition-colors">Save & retry</button>
-          </div>
-        </div>
-      )}
-
-      {compileError && !needPassword && (
+      {compileError && (
         <div className="mt-4 border border-red-400/30 bg-red-400/5 rounded-2xl p-4 font-mono text-[12px] text-red-300" data-testid="compile-error">
           {compileError}
         </div>
@@ -263,7 +250,7 @@ export default function Builder() {
           <div className="flex-1 p-5 sm:p-7 min-w-0 overflow-y-auto">
             {showCode ? (
               <pre className="font-mono text-[11px] text-mint/90 whitespace-pre-wrap break-all" data-testid="blocky-json">
-                {JSON.stringify(tree.map(({ def, vals, children }) => ({ type: def?.type, vals, children })), null, 2)}
+                {rawProgram ? JSON.stringify(rawProgram, null, 2) : JSON.stringify(tree.map(({ def, vals }) => ({ type: def?.type, vals })), null, 2)}
               </pre>
             ) : compiled ? (
               <div className="flex flex-col gap-3">

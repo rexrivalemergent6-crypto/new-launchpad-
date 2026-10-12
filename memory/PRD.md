@@ -64,3 +64,9 @@
 - Explore defaults to "Launched via CodePad" (mint matches our launches table) with an "All pad coins" toggle; honest empty state until the first portal launch.
 - Blocky workshop (Builder): project bar (icon + editable name), Stocks NEW chip, Bolt & log toggle, code view toggle, Launch (amber) + Run (green, dropdown: simulate / check-with-Bolt via relay), Ask Bolt bar + suggestion chips, 13-family colored rail, relayed palette (all catalog blocks with dropdown/value field pills), snap-in container blocks (hat/if), delete, block count, plain-english line. Engine split into components/blockyKit.jsx (flat iterative renderer — babel-safe after a stack-overflow crash with recursive components).
 - Verified: rules 17 cards/2 pages, live 7 items, launches 200, builder snap test passes (1 node on canvas after palette click), explore empty-state + 26 all-pad cards, mobile builder clean at 390px.
+
+## No-password AI (2026-10-12, round 6)
+- Discovered upstream GET /api/ai reports passwordRequired:false — the AI gate is off; POST /api/compile works with no credentials (verified: real sentence → full program JSON through our relay).
+- Removed the AI password panel entirely from Builder.
+- New programToTree() in blockyKit maps the upstream program JSON (scripts → event/body/if/condition/then/else + loose) into our nested blocky tree; Ask Bolt now renders REAL upstream programs as nested puzzle blocks (verified live: "when creator fees" → "if treasury SOL > 2 — then" → "buy back 5 SOL of the pot", 3 blocks).
+- Code view shows the raw upstream program JSON when present.
